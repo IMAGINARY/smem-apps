@@ -1,0 +1,104 @@
+body{
+	background-color:rgb(237,255,239);
+}
+
+#DivCanvas {
+	width:850px;
+	height:850px;
+	z-index:3;
+	left: 20px;
+	top: 0px;	
+	background-image: url('pond2.png'); 
+	background-repeat:no-repeat; 
+	background-size:contain;
+	margin-left: auto; 
+	margin-right: auto;
+}
+
+#DivOpzioni {
+	position:absolute;
+	width:550px;
+	height:450px;
+	z-index:2;
+	left: 25px;
+	top: 25px;	
+	background-color:rgba(255,255,255,0);
+	border: 0px solid #000000; 
+}
+
+#DivJump1 {
+	position:absolute;
+	width:10px;
+	height:10px;
+	z-index:2;
+	left: 70px;
+	top: 5px;	
+	background-color:rgba(255,255,255,0);
+	border: 0px solid #000000; 
+}
+
+#DivJump2 {
+	position:absolute;
+	width:10px;
+	height:10px;
+	z-index:2;
+	left: 330px;
+	top: 5px;	
+	background-color:rgba(255,255,255,0);
+	border: 0px solid #000000; 
+}
+
+#TestoTitolo {
+	position:absolute;
+	z-index:1;
+	width:600px;
+	left: 10px;
+	top: 40px;	
+	font-size: 40px;
+	color: #000;
+	text-align: center;
+	font-family: Optima, Verdana;
+}
+
+.ClassSfondoTitolo {
+	position:absolute;
+	z-index:1;
+	width:600px;
+	height:130px;
+	left: 1300px;
+	top: 50px;
+	background-color:rgba(255,255,255,0.9);
+}
+
+.ClasseMenuOptions {
+	position:absolute;
+	z-index:0;
+	width:600px;
+	height:590px;
+	left:1300px;
+	top:205px;
+	font-size: 16px;
+	background-color:rgba(255,255,255,0.9);
+	font-family: Optima, Verdana;	
+}
+
+.ClasseMenuJums {
+	position:absolute;
+	z-index:0;
+	width:600px;
+	height:210px;
+	left:1300px;
+	top:820px;
+	font-size: 16px;
+	background-color:rgba(255,255,255,0.9);
+	font-family: Optima, Verdana;	
+}
+
+.ClassImmaginona {
+	position:absolute;
+	z-index:1;
+	left: 0px;
+	top: 40px;
+}
+
+

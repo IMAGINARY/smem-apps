@@ -1,0 +1,266 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Waterlilies</title>
+
+<link href='files/Prova_CSS.css' rel="stylesheet" />
+<script src="files/Prova_CommonFunctions.js"></script>
+<script src="files/Classe_GRAPH.js"></script>
+
+<script>
+
+
+async function GetImage(UrlImage) {
+	return new Promise((resolve, reject) => {
+		Immagine=new Image(60, 45); 
+		Immagine.src = UrlImage;
+		Immagine.onload = () => resolve(Immagine)
+	});
+}
+
+
+
+async function init() {
+
+	window.fps = 25;		 //Frame al secondo delle animazioni
+	window.AnimStart = false;	 //Stato animazioni default
+		
+	window.Immagine = await GetImage("files/bush.png");
+	
+	window.f1 = await GetImage("files/f1.png");
+	
+	window.f2 = await GetImage("files/f2.png");
+	
+	window.f3 = await GetImage("files/f3.png");
+	
+	window.f4 = await GetImage("files/f4.png");
+	
+	window.f5 = await GetImage("files/f5.png");
+	
+	FF=[f1,f2,f3,f4,f5];
+	
+	/* Passaggi per la gestione animazioni */
+	window.Now;
+	window.Then = Date.now();
+	window.Interval = 1000/fps;
+
+	document.getElementById("Canvas").addEventListener('mousedown', ev_mousedown, false);
+	document.getElementById("Canvas").addEventListener('mouseup', ev_mouseup, false);
+	document.getElementById("Canvas").addEventListener('mousemove', ev_mousemove, false);
+	
+	w=document.getElementById("DivCanvas").clientWidth;
+	h=document.getElementById("DivCanvas").clientHeight;
+
+	document.getElementById("Canvas").width=w;
+	document.getElementById("Canvas").height=h;
+	
+	window.ctx=document.getElementById("Canvas").getContext('2d');
+	window.fps= 25;//Frame al secondo delle animazioni
+	window.Interval = 1000/fps;
+	window.AnimStart = false;	 //Stato animazioni default
+	
+	ctx.lineWidth=1;		
+	ctx.fillStyle="rgb(0,0,0)";		
+	
+	/* Passaggi per la gestione animazioni */
+	window.Now;
+	window.Then = Date.now();
+	
+	// Queste mi servono per controllare i click nel canvas
+	mousex=0;
+	mousey=0;
+	mousexo=0;
+	mouseyo=0;
+	
+	// Parametri vari
+	SogliaClick=10;
+	Soglia0=0.001;
+	
+	// Questo controlla se l'animazione è attiva o meno.
+	AnimON = false;
+	
+	// Raggio del punto
+	r = 4;
+	
+	L=80;
+	
+	PresoPt=-1;
+	Pts=[
+		[0.2625,-0.4125], // 0
+		[1,0],
+		[2.0375,-0.4125],
+		[1.1875,-1.375],
+		[1.1375,0.875],
+		[2.11,-2.6675], // 5
+		[-1.5, 0.6625],
+		[0.075,1.5875],
+		[2.9375,-1.3875],
+		[0.625,-3.2],
+		[-3.23,0], // 10
+		[1.687,2.16],
+		[0.3,3.2],
+		[-1,-3],
+		[-1.375,-1.46]
+	];
+	Berries=[8,27,32];
+	Fattorie=[29];
+	
+	Edg=[
+		[9,13],
+		[1,2],
+		[3,5],
+		[4,6],
+		[6,10],
+		[7,11],
+		[7,12],
+		[10,14],
+		[0,6],
+		[4,7],
+		[2,3],
+		[5,9],
+		[5,8],
+		[2,4],
+		[13,14]
+	];
+	
+	Transp=0.9;	
+
+	NPecorelle=50;
+	PecoreSalve=0;
+	PecoreFerme=0;
+	d_delay=100;
+	delay=0;
+
+	
+	
+	// Raggio dei punti disegnati
+	rVMov = 6;
+	rVFix = 1;
+	
+	PresoPt=-1;		
+	G = new Graph();
+		
+	for (var i=0;i<Pts.length;i++) {
+		G.AddVertex(w/2+L*Pts[i][0],h/2+L*Pts[i][1],1,0);
+	}
+	
+	EdgeData={}
+
+	for (var i=0;i<Edg.length;i++) {
+		G.adjMat[Edg[i][0]][Edg[i][1]]=1;
+		NameData=Edg[i][0].toString()+"-"+Edg[i][1].toString();
+		
+		Dati={
+		Subdivisions: 4,
+		NumeroBranch: 5,
+		Colors: ["#70af36","#42914f","#5ecc60","#3c7d5b","#5eba5b"],
+		PanceSuddivisioni: [3,Math.floor(Math.random()*5+2),Math.floor(Math.random()*5+2),Math.floor(Math.random()*5+2),Math.floor(Math.random()*5+2)],
+		SpessoreSuddivisioni: [2,8,3,2,1],
+		SottoBranch: [false,false,false,false],
+		TTT: 0,
+		RandomSuddivisioni: Array.from({length: 50}, () => (Math.random() -0.5)),
+		RandomControlPoint: Array.from({length: 50}, () => (Math.random() -0.5))
+		
+		
+		}
+		
+
+		
+		EdgeData[NameData]=Dati;
+	}
+	
+	G.Simmetrizza();
+	G.SetEuclideanDistances();
+	
+	PartenzaAnimazione();
+		
+	
+}
+
+
+
+QQQ=0;
+
+function Animazione() {
+	if (DDGrafo==true) {
+	NM=Object.keys(EdgeData);
+	for (let i=0;i<NM.length;i++) {
+		EdgeData[NM[i]].TTT+=0.003;
+	}
+	}
+	Disegna();
+}
+
+
+
+function ev_mousemove (ev) {
+	// Get the mouse position relative to the canvas element.
+	if (ev.clientX || ev.clientY == 0) { // Firefox
+		mousex = ev.layerX-ev.target.getBoundingClientRect().x-document.body.scrollLeft;
+		mousey = ev.layerY-ev.target.getBoundingClientRect().y-document.body.scrollTop;
+	} else if (ev.offsetX || ev.offsetX == 0) { // Opera
+		mousex = ev.offsetX-ev.target.getBoundingClientRect().x-document.body.scrollLeft;
+		mousey = ev.offsetY-ev.target.getBoundingClientRect().y-document.body.scrollTop;
+	}
+	
+	if (PresoPt>-1) {
+		G.Vertices[PresoPt].pos.x=mousex;
+		G.Vertices[PresoPt].pos.y=mousey;
+		Disegna();
+	}
+}
+
+function ev_mousedown (ev) {
+	// Get the mouse position relative to the canvas element.
+	if (ev.layerX || ev.layerX == 0) { // Firefox
+		mousex = ev.layerX-ev.target.getBoundingClientRect().x-document.body.scrollLeft;
+		mousey = ev.layerY-ev.target.getBoundingClientRect().y-document.body.scrollTop;
+	} else if (ev.offsetX || ev.offsetX == 0) { // Opera
+		mousex = ev.offsetX-ev.target.getBoundingClientRect().x-document.body.scrollLeft;
+		mousey = ev.offsetY-ev.target.getBoundingClientRect().y-document.body.scrollTop;
+	}
+
+	console.log(mousex,mousey)
+			
+	for(var i=0; i<G.Vertices.length;i++) {
+		if ((mousex-G.Vertices[i].pos.x)*(mousex-G.Vertices[i].pos.x)+
+			(mousey-G.Vertices[i].pos.y)*(mousey-G.Vertices[i].pos.y)<SogliaClick*SogliaClick+1) {
+			PresoPt=i;
+			break;
+		}
+	}
+	
+}
+
+function ev_mouseup (ev) {
+	PresoPt=-1;
+}
+
+
+// ------------------------------------------------------------------------------------------------
+// Funzione che disegna tutto
+// ------------------------------------------------------------------------------------------------
+
+DDGrafo=false;
+
+function DTrue() {
+	DDGrafo=true;
+}
+
+function Disegna() {	
+	if (DDGrafo==false) G.PlotGraph(ctx);
+	else G.PlotBranch(ctx,FF,QQQ);	
+}
+
+</script>
+
+</head>
+<body onload='init()' onkeydown="KeyPressed(event);">
+
+<div id="DivCanvas" style="font: bold 20px Arial;">
+	<canvas id="Canvas"></canvas> 
+</div>
+<button type="button" onclick="DTrue()" style="position:absolute; left:30px; top:30px;">Click Me!</button>
+
+</body>
+</html>
