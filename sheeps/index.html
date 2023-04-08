@@ -40,29 +40,33 @@ class Blocco {
 }
 
 
+async function GetImage(UrlImage) {
+	return new Promise((resolve, reject) => {
+		Immagine=new Image(60, 45); 
+		Immagine.src = UrlImage;
+		Immagine.onload = () => resolve(Immagine)
+	});
+}
+
 // ------------------------------------------------------------------------------------------------
 // Funzione init
 // ------------------------------------------------------------------------------------------------
 
-function init() {
+async function init() {
 	
 	window.fps = 25;		 //Frame al secondo delle animazioni
 	window.AnimStart = false;	 //Stato animazioni default
 		
-	window.image = new Image(60, 45); 
-	image.src = "files/sheep.png";
+	window.image = await GetImage("files/sheep.png");
 	
-	window.blueb = new Image(60, 45); 
-	blueb.src = "files/blueberries.png";
+	window.blueb = await GetImage("files/blueberries.png");
 	
-	window.huut = new Image(60, 45); 
-	huut.src = "files/hut.png";
+	window.huut = await GetImage("files/hut.png");
 
-	window.blockim = new Image(40, 40); 
-	blockim.src = "files/Police.png";
+	window.blockim = await GetImage("files/Police.png");
 
-	window.blockim_Transp = new Image(40, 40); 
-	blockim_Transp.src = "files/Police_transp.png";
+	window.blockim_Transp = await GetImage("files/Police_transp.png");
+
 		
 	/* Passaggi per la gestione animazioni */
 	window.Now;
@@ -249,10 +253,9 @@ function init() {
 	
 	AggiornaVariabili();
 	
-	setTimeout(() => {
+
 	Disegna();
-		//PartenzaAnimazione();
-	}, 500)
+
 	
 	
 }

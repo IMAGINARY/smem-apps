@@ -10,29 +10,32 @@
 <script>
 
 
+async function GetImage(UrlImage) {
+	return new Promise((resolve, reject) => {
+		Immagine=new Image(60, 45); 
+		Immagine.src = UrlImage;
+		Immagine.onload = () => resolve(Immagine)
+	});
+}
 
 
-function init() {
+
+async function init() {
+
 	window.fps = 25;		 //Frame al secondo delle animazioni
 	window.AnimStart = false;	 //Stato animazioni default
 		
-	window.Immagine = new Image(60, 45); 
-	Immagine.src = "files/bush.png";
+	window.Immagine = await GetImage("files/bush.png");
 	
-	window.f1 = new Image(60, 45); 
-	f1.src = "files/f1.png";
+	window.f1 = await GetImage("files/f1.png");
 	
-	window.f2 = new Image(60, 45); 
-	f2.src = "files/f2.png";
+	window.f2 = await GetImage("files/f2.png");
 	
-	window.f3 = new Image(60, 45); 
-	f3.src = "files/f3.png";
+	window.f3 = await GetImage("files/f3.png");
 	
-	window.f4 = new Image(60, 45); 
-	f4.src = "files/f4.png";
+	window.f4 = await GetImage("files/f4.png");
 	
-	window.f5 = new Image(60, 45); 
-	f5.src = "files/f5.png";
+	window.f5 = await GetImage("files/f5.png");
 	
 	FF=[f1,f2,f3,f4,f5];
 	
@@ -169,9 +172,8 @@ function init() {
 	G.Simmetrizza();
 	G.SetEuclideanDistances();
 	
-	setTimeout(() => {
-  PartenzaAnimazione();
-}, "200")	
+	PartenzaAnimazione();
+		
 	
 }
 

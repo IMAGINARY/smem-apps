@@ -292,6 +292,24 @@ class Graph {
 	
 	PlotGraph(ctx,Mirt,Hut,IMAG) {
 		ctx.clearRect(-w,-h,3*w,3*h);
+		
+		
+		
+		// Vertici
+		for (var i=0;i<this.NVert();i++) {
+			switch(this.Vertices[i].type) {
+				case 0: 
+					ctx.fillStyle="#3b972d";		
+					ctx.beginPath();
+					ctx.arc(this.Vertices[i].pos.x,
+							this.Vertices[i].pos.y,27,0,2*Math.PI,true);
+					ctx.closePath();
+					ctx.fill();		
+
+					
+				break;	
+			}
+		}
 
 
 		ctx.strokeStyle="#3b972d";
@@ -312,6 +330,20 @@ class Graph {
 		
 		ctx.strokeStyle="#82e27e";
 		ctx.lineWidth=25;
+		
+		
+		for (var i=0;i<this.NVert();i++) {
+			switch(this.Vertices[i].type) {
+				case 0: 
+					ctx.fillStyle="#82e27e";		
+					ctx.beginPath();
+					ctx.arc(this.Vertices[i].pos.x,
+							this.Vertices[i].pos.y,22,0,2*Math.PI,true);
+					ctx.closePath();
+					ctx.fill();							
+				break;	
+			}
+		}
 
 		// Lati
 		
@@ -339,17 +371,13 @@ class Graph {
 			ctx.stroke();
 		}
 		
-		// Vertici
+		
+		
+		
+		
 		for (var i=0;i<this.NVert();i++) {
 			switch(this.Vertices[i].type) {
-				case 0: 
-					ctx.fillStyle="#82e27e";		
-					ctx.beginPath();
-					ctx.arc(this.Vertices[i].pos.x,
-							this.Vertices[i].pos.y,22,0,2*Math.PI,true);
-					ctx.closePath();
-					ctx.fill();							
-				break;
+				
 				
 				case 1:
 					drawRotated(Mirt, ctx, 0, this.Vertices[i].pos.x-50, this.Vertices[i].pos.y-50, 100, 100)
@@ -362,15 +390,11 @@ class Graph {
 				case 3:
 					drawRotated(IMAG, ctx, 0, this.Vertices[i].pos.x-30, this.Vertices[i].pos.y-30, 60, 60)
 				break;
-					ctx.fillStyle="rgb(0,0,0)";		
-					ctx.beginPath();
-					ctx.arc(this.Vertices[i].pos.x,
-							this.Vertices[i].pos.y,30,0,2*Math.PI,true);
-					ctx.closePath();
-					ctx.fill();							
-				break;				
+							
 			}
 		}
+		
+		
 				
 	}
 	
