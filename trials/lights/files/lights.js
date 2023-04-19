@@ -17,8 +17,27 @@ async function setup()
 		document.getElementById("light-wrapper").appendChild(await CreateImage(i,"lamp","L","imglamps"));
 		document.getElementById("button-wrapper").appendChild(await CreateImage(i,"","B","imgbuttons",ChangeStatus));
 	}
+	
+	audio=new Array(LenghtArray);
+	
+	SampleSelector=Math.floor(Math.random()*4);
+	
+	for (i=0;i<LenghtArray;i++) {
+		audio[i]=await LoadAudio("./files/"+SampleSelector+"_"+ i +".mp3");
+		
+	}
+
+
 
   
+}
+
+async function LoadAudio(Src) {
+	return new Promise((resolve, reject) => {
+		NewAudio=document.createElement("AUDIO");
+		NewAudio.oncanplaythrough = () => resolve(NewAudio);
+		NewAudio.src=Src;
+	});
 }
 
 
@@ -74,11 +93,20 @@ function ChangeStatus() {
 			LightVector[i]=1-LightVector[i];
 			ThisName=document.getElementById("L"+i).name;
 			document.getElementById("L"+i).src=((LightVector[i]==0) ? "files/"+ThisName+"off.png" : "files/"+ThisName+"on.png");
+			if (LightVector[i]==1) {
+				audio[i].currentTime = 0
+				audio[i].play();
+				
+			} else {
+				audio[i].pause();
+				audio[i].currentTime = 0
+			}
 		}
 	}
 	ButtonVector[n]=1-ButtonVector[n];
 	document.getElementById("B"+n).src=((ButtonVector[n]==0) ? "files/off.png" : "files/on.png");
-	
+
+
 }
 
 
