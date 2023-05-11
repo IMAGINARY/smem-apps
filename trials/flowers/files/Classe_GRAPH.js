@@ -198,6 +198,86 @@ class Graph {
 			console.log("Stai cercando di rimuovere un vertice che non esiste...");
 		}
 	}
+	sameSign = (a, b) => (a * b) >= 0;
+	
+	CheckEdgesIntersect(x1, y1, x2, y2, x3, y3, x4, y4){
+		
+	var a1, a2, b1, b2, c1, c2;
+	var r1, r2 , r3, r4;
+	var denom, offset, num;
+
+	// Compute a1, b1, c1, where line joining points 1 and 2
+	// is "a1 x + b1 y + c1 = 0".
+	a1 = y2 - y1;
+	b1 = x1 - x2;
+	c1 = (x2 * y1) - (x1 * y2);
+
+	// Compute r3 and r4.
+	r3 = ((a1 * x3) + (b1 * y3) + c1);
+	r4 = ((a1 * x4) + (b1 * y4) + c1);
+
+	// Check signs of r3 and r4. If both point 3 and point 4 lie on
+	// same side of line 1, the line segments do not intersect.
+	if (this.sameSign(r3, r4)){
+		return 0; //return that they do not intersect
+	}
+	
+	// Compute a2, b2, c2
+	a2 = y4 - y3;
+	b2 = x3 - x4;
+	c2 = (x4 * y3) - (x3 * y4);
+
+	// Compute r1 and r2
+	r1 = (a2 * x1) + (b2 * y1) + c2;
+	r2 = (a2 * x2) + (b2 * y2) + c2;
+
+	// Check signs of r1 and r2. If both point 1 and point 2 lie
+	// on same side of second line segment, the line segments do
+	// not intersect.
+	 if ( (this.sameSign(r1, r2))){
+		return 0; //return that they do not intersect
+	}
+
+
+	// lines_intersect
+	return 1; //lines intersect, return true
+}
+
+	GetEdges() {
+		this.ComputeEdges=[]
+		for (var j=0; j<this.NVert();j++) {
+			for (var i=0; i<j;i++) {
+				if (this.adjMat[i][j]!=0) {
+					this.ComputeEdges.push([this.Vertices[i].pos,this.Vertices[j].pos,i,j])
+				}
+			}
+		}	
+		
+	}
+	
+	CheckIntersectionTest() {
+		this.GetEdges();
+		this.IntersectingEdges=[];
+		for (var i = 0;i<this.ComputeEdges.length-1;i++)
+			for (var j = i+1;j<this.ComputeEdges.length;j++)
+				if (j<this.ComputeEdges.length) {
+					var x1=this.ComputeEdges[i][0].x
+					var y1=this.ComputeEdges[i][0].y
+					var x2=this.ComputeEdges[i][1].x
+					var y2=this.ComputeEdges[i][1].y
+					
+					var x3=this.ComputeEdges[j][0].x
+					var y3=this.ComputeEdges[j][0].y
+					var x4=this.ComputeEdges[j][1].x
+					var y4=this.ComputeEdges[j][1].y
+					if (this.CheckEdgesIntersect(x1, y1, x2, y2, x3, y3, x4, y4)==1) {
+						this.IntersectingEdges.push([this.ComputeEdges[i][2],this.ComputeEdges[i][3]]);
+						this.IntersectingEdges.push([this.ComputeEdges[j][2],this.ComputeEdges[j][3]]);
+						
+					}
+				}
+		
+	}
 
 	// Rende il grafo completo
 	SetCompleteGraph() {
@@ -225,8 +305,11 @@ class Graph {
 	Simmetrizza() {
 		for (var j=0; j<G.NVert();j++) {
 			for (var i=0; i<j;i++) {
-				this.adjMat[j][i]=this.adjMat[i][j];
-				this.weightMat[j][i]=this.weightMat[i][j];
+				if (this.adjMat[i][j]==1) this.adjMat[j][i]=this.adjMat[i][j];
+				if (this.adjMat[j][i]==1) this.adjMat[i][j]=this.adjMat[j][i];
+				
+				if (this.weightMat[i][j]==1) this.weightMat[j][i]=this.weightMat[i][j];
+				if (this.weightMat[j][i]==1) this.weightMat[i][j]=this.weightMat[j][i];
 			}
 		}	
 	}
@@ -366,8 +449,23 @@ class Graph {
 		for (var j=0; j<this.NVert();j++) {
 			for (var i=0; i<j;i++) {
 				if (this.adjMat[i][j]!=0) {
-					Dati=EdgeData[i.toString()+"-"+j.toString()]
-					this.DrawBranch(ctx,this.Vertices[i].pos,this.Vertices[j].pos,Dati);
+					
+					this.BW=1
+					for (var k=0;k<this.IntersectingEdges.length;k++) {
+						if (this.IntersectingEdges[k][0]==i && this.IntersectingEdges[k][1]==j) this.BW=0;
+						if (this.IntersectingEdges[k][0]==j && this.IntersectingEdges[k][1]==i) this.BW=0;
+					
+					}
+					//console.log([this.BW,i,j]);
+					
+					if (typeof EdgeData[i.toString()+"-"+j.toString()]!=="undefined") {
+						Dati=EdgeData[i.toString()+"-"+j.toString()]
+						this.DrawBranch(ctx,this.Vertices[i].pos,this.Vertices[j].pos,Dati,this.BW);
+					} else {
+						Dati=EdgeData[j.toString()+"-"+i.toString()]	
+						this.DrawBranch(ctx,this.Vertices[j].pos,this.Vertices[i].pos,Dati,this.BW);
+					}
+					
 				}
 			}
 		}	
@@ -376,34 +474,6 @@ class Graph {
 		for (var i=0;i<this.NVert();i++) {
 			Immagine=FF[(i*i*i)%5];
 			this.drawRotated(Immagine, ctx, 0, this.Vertices[i].pos.x-30, this.Vertices[i].pos.y-30, 60, 60);
-			/*
-			switch(this.Vertices[i].type) {
-				case 0: 
-					ctx.fillStyle="rgb(0,0,255)";		
-					ctx.beginPath();
-					ctx.arc(this.Vertices[i].pos.x,
-							this.Vertices[i].pos.y,8,0,2*Math.PI,true);
-					ctx.closePath();
-					ctx.fill();							
-				break;
-				
-				case 1:
-					ctx.fillStyle="rgb(0,0,0)";		
-					ctx.fillRect(
-							this.Vertices[i].pos.x-15,
-							this.Vertices[i].pos.y-15,30,30);
-				break;
-				
-				case 2:
-					ctx.fillStyle="rgb(0,255,0)";		
-					ctx.beginPath();
-					ctx.arc(this.Vertices[i].pos.x,
-							this.Vertices[i].pos.y,30,0,2*Math.PI,true);
-					ctx.closePath();
-					ctx.fill();							
-				break;				
-			}
-			*/
 		}
 
 
@@ -412,6 +482,9 @@ class Graph {
 		
 				
 	}
+	
+	
+	
 
 Remap(TTT,A,B) {
 	if (TTT<A) return 0;
@@ -462,7 +535,7 @@ drawRotated(image, context, angle, left, top, width, height) {
 		}
 	}
 	
-	DrawBranch(ctx,Inizio,Fine,Dati) {
+	DrawBranch(ctx,Inizio,Fine,Dati,BW) {
 	
 		
 		
@@ -473,8 +546,13 @@ drawRotated(image, context, angle, left, top, width, height) {
 		let SubB=Dati.SottoBranch;
 		let TTT=Dati.TTT;
 		for (let j=0;j<Numero;j++) {
+			
+			if (BW==1) {ctx.strokeStyle = Colors[j];
 			ctx.lineWidth = Lunghezze[j];
-			ctx.strokeStyle = Colors[j];
+			}
+			else {ctx.strokeStyle = "#aaaaaa";
+			ctx.lineWidth = 1;
+			}
 			this.DB(ctx,Inizio,Fine,Suddivisioni[j],SubB[j],TTT,Dati.RandomSuddivisioni.slice(j*5),Dati.RandomControlPoint.slice(j*5));
 		}
 	}
