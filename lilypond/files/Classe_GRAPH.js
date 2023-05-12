@@ -443,7 +443,15 @@ class Graph {
 				
 	}
 	
-	
+	PlotVerticesCoordinates() {
+		var Testo="";
+		for (var j=0; j<this.NVert();j++) {
+			Testo+="["+((this.Vertices[j].pos.x-w/2)/L).toString()+","+((this.Vertices[j].pos.y-h/2)/L).toString()+"],\n" 
+			
+			
+		}
+		console.log(Testo);
+	}
 	
 	
 	PlotBranch(ctx,FF,TTT) {
@@ -491,7 +499,7 @@ class Graph {
 				// Vertici
 		for (var i=0;i<this.NVert();i++) {
 			Immagine=FF[(i*i*i)%5];
-			this.drawRotated(Immagine, ctx, 0, this.Vertices[i].pos.x-30, this.Vertices[i].pos.y-30, 60, 60);
+			this.drawRotated(Immagine, ctx, 0, this.Vertices[i].pos.x-60, this.Vertices[i].pos.y-60, 120, 120);
 		}
 		
 		
