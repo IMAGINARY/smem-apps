@@ -18,14 +18,18 @@ async function GetImage(UrlImage) {
 	});
 }
 
+var seed = 1;
+function random() {
+    var x = Math.sin(seed++) * 10000;
+    return x - Math.floor(x);
+}
 
 
 async function init() {
 
 	window.fps = 25;		 //Frame al secondo delle animazioni
 	window.AnimStart = false;	 //Stato animazioni default
-		
-	window.Immagine = await GetImage("files/bush.png");
+
 	
 	window.f1 = await GetImage("files/f1.png");
 	
@@ -37,7 +41,12 @@ async function init() {
 	
 	window.f5 = await GetImage("files/f5.png");
 	
+	window.l1=await GetImage("files/l1.png");
+	window.l2=await GetImage("files/l2.png");
+	
 	FF=[f1,f2,f3,f4,f5];
+	
+	LL=[l1,l2];
 	
 	/* Passaggi per la gestione animazioni */
 	window.Now;
@@ -155,8 +164,12 @@ async function init() {
 	for (var i=0;i<Edg.length;i++) {
 		G.adjMat[Edg[i][0]][Edg[i][1]]=1;
 		G.adjMat[Edg[i][1]][Edg[i][0]]=1;
-		NameData=Edg[i][0].toString()+"-"+Edg[i][1].toString();
-		
+		if (Edg[i][0]<Edg[i][1]) {
+			NameData=Edg[i][0].toString()+"-"+Edg[i][1].toString();
+		} else {
+			NameData=Edg[i][1].toString()+"-"+Edg[i][0].toString();
+		}
+		let NumeroFiori=Math.floor(Math.random()*3+1);
 		Dati={
 		Vertici:[Edg[i][0],Edg[i][1]],
 		Subdivisions: 4,
@@ -167,8 +180,10 @@ async function init() {
 		SottoBranch: [false,false,false,false],
 		TTT: 0,
 		RandomSuddivisioni: Array.from({length: 50}, () => (Math.random() -0.5)),
-		RandomControlPoint: Array.from({length: 50}, () => (Math.random() -0.5))
+		RandomControlPoint: Array.from({length: 50}, () => (Math.random() -0.5)),
 		
+		FlowerType: Array.from({length: NumeroFiori}, () => (Math.floor(Math.random()*2))),
+		FlowerPos: Array.from({length: NumeroFiori}, () => (Math.random())),
 		
 		}
 		
@@ -210,13 +225,20 @@ function SearchInEdges(X,Edges,V) {
 function Animazione() {
 	CurrentStatus=1;
 	NM=Object.keys(EdgeData);
+	CanFlower=true;
 	for (let i=0;i<NM.length;i++) {
 		if (G.CheckIfEdgesIntersects(EdgeData[NM[i]].Vertici[0],EdgeData[NM[i]].Vertici[1])==false) {
-			EdgeData[NM[i]].TTT+=0.003;
+			if (EdgeData[NM[i]].TTT<1) {
+				EdgeData[NM[i]].TTT+=0.003;
+				CanFlower=false;
+			}
 		} else {
 			EdgeData[NM[i]].TTT=0;
 		}
 	}
+	
+	if (G.IntersectingEdges.length==0 && CanFlower==true) {G.StartFlowering=true}
+	else {G.StartFlowering=false}
 	Disegna();
 }
 
@@ -277,6 +299,7 @@ function ev_mouseup (ev) {
 function Disegna() {	
 	G.PlotBranch(ctx,FF,QQQ);	
 	G.PlotLeaves();
+	G.PlotFlowers();
 }
 
 </script>

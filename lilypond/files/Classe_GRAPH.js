@@ -155,6 +155,7 @@ class Graph {
 		this.weightMat=[[]];
 		this.MST=[];
 		this.IntersectingEdges=[];
+		this.StartFlowering=false;
 	}
 	
 	// Metodi della classe GRAPH.
@@ -451,20 +452,26 @@ class Graph {
 			for (var i=0; i<j;i++) {
 				if (this.adjMat[i][j]!=0) {
 					
-					
 					//Controllo se c'è intersezione
 							this.BW=1
 							if (this.CheckIfEdgesIntersects(i,j)) this.BW=0;
 
 							//console.log([this.BW,i,j]);
 							
-							if (typeof EdgeData[i.toString()+"-"+j.toString()]!=="undefined") {
-								Dati=EdgeData[i.toString()+"-"+j.toString()]
-								this.DrawBranch(ctx,this.Vertices[i].pos,this.Vertices[j].pos,Dati,this.BW);
-							} else {
-								Dati=EdgeData[j.toString()+"-"+i.toString()]	
-								this.DrawBranch(ctx,this.Vertices[j].pos,this.Vertices[i].pos,Dati,this.BW);
-							}
+							
+							Dati=EdgeData[i.toString()+"-"+j.toString()]
+							this.DrawBranch(ctx,this.Vertices[i].pos,this.Vertices[j].pos,Dati,this.BW);
+							
+							
+					if (this.StartFlowering==true) {
+						for (var k=0;k<Dati.FlowerType.length;k++) {
+							Immagine=LL[Dati.FlowerType[k]];
+							let Direzione=this.Vertices[i].pos.Diff(this.Vertices[j].pos);
+							let PPPP=this.Vertices[j].pos.LinComb(Direzione,1,Dati.FlowerPos[k])
+							
+							this.drawRotated(Immagine, ctx, 0, PPPP.x-15, PPPP.y-15, 30, 30);
+						}
+					}
 					
 				}
 			}
@@ -491,6 +498,31 @@ class Graph {
 			Immagine=FF[(i*i*i)%5];
 			this.drawRotated(Immagine, ctx, 0, this.Vertices[i].pos.x-30, this.Vertices[i].pos.y-30, 60, 60);
 		}
+		
+		
+	}
+	
+	PlotFlowers() {
+		for (var j=0; j<this.NVert();j++) {
+			for (var i=0; i<j;i++) {
+				if (this.adjMat[i][j]!=0) {
+		
+							
+					if (this.StartFlowering==true) {
+						for (var k=0;k<Dati.FlowerType.length;k++) {
+							Immagine=LL[Dati.FlowerType[k]];
+							let Direzione=this.Vertices[i].pos.Diff(this.Vertices[j].pos);
+							let PPPP=this.Vertices[j].pos.LinComb(Direzione,1,Dati.FlowerPos[k])
+							
+							this.drawRotated(Immagine, ctx, 0, PPPP.x-15, PPPP.y-15, 30, 30);
+						}
+					}
+					
+				}
+			}
+		}	
+		
+		
 		
 		
 	}
@@ -548,7 +580,12 @@ class Graph {
 	
 	DrawBranch(ctx,Inizio,Fine,Dati,BW) {
 	
-		
+		ctx.strokeStyle = "#aaaaaa";
+			ctx.lineWidth = 1;
+			ctx.beginPath();
+			ctx.moveTo(Inizio.x,Inizio.y);
+			ctx.lineTo(Fine.x,Fine.y);
+			ctx.stroke();
 		
 		let Numero=Dati.NumeroBranch
 		let Colors=Dati.Colors;
@@ -558,17 +595,12 @@ class Graph {
 		let TTT=Dati.TTT;
 		for (let j=0;j<Numero;j++) {
 			
+			
 			if (BW==1) {
 				ctx.strokeStyle = Colors[j];
 				ctx.lineWidth = Lunghezze[j];
 				this.DB(ctx,Inizio,Fine,Suddivisioni[j],SubB[j],TTT,Dati.RandomSuddivisioni.slice(j*5),Dati.RandomControlPoint.slice(j*5));
-			}
-			else {
-				ctx.beginPath();
-				ctx.moveTo(Inizio.x,Inizio.y);
-				ctx.lineTo(Fine.x,Fine.y);
-				ctx.stroke();
-			}
+			} 
 			
 		}
 	}
