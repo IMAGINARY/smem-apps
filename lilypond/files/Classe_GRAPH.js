@@ -44,6 +44,10 @@ class Vec2 {
 		
 	}
 	
+	VettNorm() {
+		return new Vec2(this.y,-this.x);
+	}
+	
 	AddValue(A,B) {
 		return new Vec2((this.x)+A,(this.y)+B);		
 	}
@@ -154,6 +158,8 @@ class Graph {
 		this.adjMat=[[]];
 		this.weightMat=[[]];
 		this.MST=[];
+		this.IntersectingEdges=[];
+		this.StartFlowering=false;
 	}
 	
 	// Metodi della classe GRAPH.
@@ -437,7 +443,15 @@ class Graph {
 				
 	}
 	
-	
+	PlotVerticesCoordinates() {
+		var Testo="";
+		for (var j=0; j<this.NVert();j++) {
+			Testo+="["+((this.Vertices[j].pos.x-w/2)/L).toString()+","+((this.Vertices[j].pos.y-h/2)/L).toString()+"],\n" 
+			
+			
+		}
+		console.log(Testo);
+	}
 	
 	
 	PlotBranch(ctx,FF,TTT) {
@@ -450,55 +464,96 @@ class Graph {
 			for (var i=0; i<j;i++) {
 				if (this.adjMat[i][j]!=0) {
 					
-					this.BW=1
-					for (var k=0;k<this.IntersectingEdges.length;k++) {
-						if (this.IntersectingEdges[k][0]==i && this.IntersectingEdges[k][1]==j) this.BW=0;
-						if (this.IntersectingEdges[k][0]==j && this.IntersectingEdges[k][1]==i) this.BW=0;
-					
-					}
-					//console.log([this.BW,i,j]);
-					
-					if (typeof EdgeData[i.toString()+"-"+j.toString()]!=="undefined") {
-						Dati=EdgeData[i.toString()+"-"+j.toString()]
-						this.DrawBranch(ctx,this.Vertices[i].pos,this.Vertices[j].pos,Dati,this.BW);
-					} else {
-						Dati=EdgeData[j.toString()+"-"+i.toString()]	
-						this.DrawBranch(ctx,this.Vertices[j].pos,this.Vertices[i].pos,Dati,this.BW);
-					}
+					//Controllo se c'è intersezione
+							this.BW=1
+							if (this.CheckIfEdgesIntersects(i,j)) this.BW=0;
+
+							//console.log([this.BW,i,j]);
+							
+							
+							Dati=EdgeData[i.toString()+"-"+j.toString()]
+							this.DrawBranch(ctx,this.Vertices[i].pos,this.Vertices[j].pos,Dati,this.BW);
+							
+							
 					
 				}
 			}
 		}	
 	
-		// Vertici
-		for (var i=0;i<this.NVert();i++) {
-			Immagine=FF[(i*i*i)%5];
-			this.drawRotated(Immagine, ctx, 0, this.Vertices[i].pos.x-30, this.Vertices[i].pos.y-30, 60, 60);
-		}
-
-
-		
-		
-		
-				
+	
 	}
 	
 	
+	CheckIfEdgesIntersects(i,j) {
+		for (var k=0;k<this.IntersectingEdges.length;k++) {
+			if (this.IntersectingEdges[k][0]==i && this.IntersectingEdges[k][1]==j) return true
+			if (this.IntersectingEdges[k][0]==j && this.IntersectingEdges[k][1]==i) return true
+		}
+		return false
+		
+	}
+	
+	
+	PlotLeaves() {
+		
+				// Vertici
+		for (var i=0;i<this.NVert();i++) {
+			Immagine=FF[(i*i*i)%5];
+			this.drawRotated(Immagine, ctx, 0, this.Vertices[i].pos.x-60, this.Vertices[i].pos.y-60, 120, 120);
+		}
+		
+		
+	}
+	
+	PlotFlowers() {
+		for (var j=0; j<this.NVert();j++) {
+			for (var i=0; i<j;i++) {
+				if (this.adjMat[i][j]!=0) {
+		
+							
+					if (this.StartFlowering==true) {
+						Dati=EdgeData[i.toString()+"-"+j.toString()]
+						for (var k=0;k<Dati.FlowerType.length;k++) {
+
+							Immagine=LL[Dati.FlowerType[k]];
+							let Direzione=this.Vertices[i].pos.Diff(this.Vertices[j].pos);
+							
+							let DirezioneNormale=Direzione.VettNorm();
+			
+							
+							
+							
+							let PPPP=this.Vertices[j].pos.LinComb(Direzione,1,Dati.FlowerPos[k]).Sum(DirezioneNormale.Rescale(Dati.FlowerOShift[k]));
+							let FlowerTTT=Math.min(Math.max(0,Dati.FlowerTTT[k]),Math.PI/2+0.2);
+							let FlowerDim=Dati.FlowerDim[k]*Math.sin(FlowerTTT);
+							if (FlowerDim>0) this.drawRotated(Immagine, ctx, Dati.FlowerAngle[k], PPPP.x-FlowerDim/2, PPPP.y-FlowerDim/2, FlowerDim, FlowerDim);
+						}
+					}
+					
+				}
+			}
+		}	
+		
+		
+		
+		
+	}
+	
 	
 
-Remap(TTT,A,B) {
-	if (TTT<A) return 0;
-	if (TTT>B) return 1;
-	return (TTT-A)/(B-A);
-}
-	
-drawRotated(image, context, angle, left, top, width, height) {
-    context.save();
-    context.translate(left + width / 2, top + height / 2);
-    context.rotate(Math.PI / 180 * angle);
-    context.drawImage(image, - width / 2, - height / 2, width, height);
-    context.restore();
-}
+	Remap(TTT,A,B) {
+		if (TTT<A) return 0;
+		if (TTT>B) return 1;
+		return (TTT-A)/(B-A);
+	}
+		
+	drawRotated(image, context, angle, left, top, width, height) {
+		context.save();
+		context.translate(left + width / 2, top + height / 2);
+		context.rotate(Math.PI / 180 * angle);
+		context.drawImage(image, - width / 2, - height / 2, width, height);
+		context.restore();
+	}
 	
 	LongCurve(ctx,Points,FirstControlPoint,SubBranches,TTT) {
 		
@@ -537,7 +592,12 @@ drawRotated(image, context, angle, left, top, width, height) {
 	
 	DrawBranch(ctx,Inizio,Fine,Dati,BW) {
 	
-		
+		ctx.strokeStyle = "#aaaaaa";
+			ctx.lineWidth = 1;
+			ctx.beginPath();
+			ctx.moveTo(Inizio.x,Inizio.y);
+			ctx.lineTo(Fine.x,Fine.y);
+			ctx.stroke();
 		
 		let Numero=Dati.NumeroBranch
 		let Colors=Dati.Colors;
@@ -547,13 +607,13 @@ drawRotated(image, context, angle, left, top, width, height) {
 		let TTT=Dati.TTT;
 		for (let j=0;j<Numero;j++) {
 			
-			if (BW==1) {ctx.strokeStyle = Colors[j];
-			ctx.lineWidth = Lunghezze[j];
-			}
-			else {ctx.strokeStyle = "#aaaaaa";
-			ctx.lineWidth = 1;
-			}
-			this.DB(ctx,Inizio,Fine,Suddivisioni[j],SubB[j],TTT,Dati.RandomSuddivisioni.slice(j*5),Dati.RandomControlPoint.slice(j*5));
+			
+			if (BW==1) {
+				ctx.strokeStyle = Colors[j];
+				ctx.lineWidth = Lunghezze[j];
+				this.DB(ctx,Inizio,Fine,Suddivisioni[j],SubB[j],TTT,Dati.RandomSuddivisioni.slice(j*5),Dati.RandomControlPoint.slice(j*5));
+			} 
+			
 		}
 	}
 	
