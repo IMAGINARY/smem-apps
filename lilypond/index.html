@@ -171,20 +171,22 @@ async function init() {
 		}
 		let NumeroFiori=Math.floor(Math.random()*3+1);
 		Dati={
-		Vertici:[Edg[i][0],Edg[i][1]],
-		Subdivisions: 4,
-		NumeroBranch: 5,
-		Colors: ["#70af36","#42914f","#5ecc60","#3c7d5b","#5eba5b"],
-		PanceSuddivisioni: [3,Math.floor(Math.random()*5+2),Math.floor(Math.random()*5+2),Math.floor(Math.random()*5+2),Math.floor(Math.random()*5+2)],
-		SpessoreSuddivisioni: [2,8,3,2,1],
-		SottoBranch: [false,false,false,false],
-		TTT: 0,
-		RandomSuddivisioni: Array.from({length: 50}, () => (Math.random() -0.5)),
-		RandomControlPoint: Array.from({length: 50}, () => (Math.random() -0.5)),
-		
-		FlowerType: Array.from({length: NumeroFiori}, () => (Math.floor(Math.random()*2))),
-		FlowerPos: Array.from({length: NumeroFiori}, () => (Math.random())),
-		
+			Vertici:[Edg[i][0],Edg[i][1]],
+			Subdivisions: 4,
+			NumeroBranch: 5,
+			Colors: ["#70af36","#42914f","#5ecc60","#3c7d5b","#5eba5b"],
+			PanceSuddivisioni: [3,Math.floor(Math.random()*5+2),Math.floor(Math.random()*5+2),Math.floor(Math.random()*5+2),Math.floor(Math.random()*5+2)],
+			SpessoreSuddivisioni: [2,8,3,2,1],
+			SottoBranch: [false,false,false,false],
+			TTT: 0,
+			RandomSuddivisioni: Array.from({length: 50}, () => (Math.random() -0.5)),
+			RandomControlPoint: Array.from({length: 50}, () => (Math.random() -0.5)),
+			FlowerType: Array.from({length: NumeroFiori}, () => (Math.floor(Math.random()*2))),
+			FlowerPos: GetRandomButSpaced(NumeroFiori,0.5/NumeroFiori),
+			FlowerTTT: Array.from({length: NumeroFiori}, () => (-Math.random())),
+			FlowerDim: Array.from({length: NumeroFiori}, () => (30+Math.floor(Math.random()*30))),
+			FlowerAngle: Array.from({length: NumeroFiori}, () => (Math.random()*360)),
+			FlowerOShift: Array.from({length: NumeroFiori}, () => 0.1*(Math.random() -0.5)),
 		}
 		
 
@@ -200,6 +202,12 @@ async function init() {
 	
 }
 
+
+function GetRandomButSpaced(N,D) {
+	let Risposta=new Array(N);
+	for (let i=0;i<N;i++) Risposta[i]=D*(Math.random()-0.5)+(i+1)/(N+1);
+	return Risposta;
+}
 
 function GetEdgeName(E) {
 	return E[0].toString()+"-"+E[1].toString();
@@ -235,10 +243,29 @@ function Animazione() {
 		} else {
 			EdgeData[NM[i]].TTT=0;
 		}
+		
+		if (G.StartFlowering==true) {
+			for (let k=0;k<EdgeData[NM[i]].FlowerTTT.length;k++) {
+				EdgeData[NM[i]].FlowerTTT[k]+=0.03;
+			}
+		}
 	}
 	
-	if (G.IntersectingEdges.length==0 && CanFlower==true) {G.StartFlowering=true}
-	else {G.StartFlowering=false}
+	if (G.IntersectingEdges.length==0 && CanFlower==true) {
+		G.StartFlowering=true
+		
+	}
+	else {
+		if (G.StartFlowering==true) {
+			G.StartFlowering=false
+			for (let i=0;i<NM.length;i++) {
+			for (let k=0;k<EdgeData[NM[i]].FlowerTTT.length;k++) {
+				EdgeData[NM[i]].FlowerTTT[k]=0;
+			}
+			}
+	
+		}
+	}
 	Disegna();
 }
 

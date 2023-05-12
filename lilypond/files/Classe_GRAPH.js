@@ -44,6 +44,10 @@ class Vec2 {
 		
 	}
 	
+	VettNorm() {
+		return new Vec2(this.y,-this.x);
+	}
+	
 	AddValue(A,B) {
 		return new Vec2((this.x)+A,(this.y)+B);		
 	}
@@ -463,15 +467,6 @@ class Graph {
 							this.DrawBranch(ctx,this.Vertices[i].pos,this.Vertices[j].pos,Dati,this.BW);
 							
 							
-					if (this.StartFlowering==true) {
-						for (var k=0;k<Dati.FlowerType.length;k++) {
-							Immagine=LL[Dati.FlowerType[k]];
-							let Direzione=this.Vertices[i].pos.Diff(this.Vertices[j].pos);
-							let PPPP=this.Vertices[j].pos.LinComb(Direzione,1,Dati.FlowerPos[k])
-							
-							this.drawRotated(Immagine, ctx, 0, PPPP.x-15, PPPP.y-15, 30, 30);
-						}
-					}
 					
 				}
 			}
@@ -509,12 +504,21 @@ class Graph {
 		
 							
 					if (this.StartFlowering==true) {
+						Dati=EdgeData[i.toString()+"-"+j.toString()]
 						for (var k=0;k<Dati.FlowerType.length;k++) {
+
 							Immagine=LL[Dati.FlowerType[k]];
 							let Direzione=this.Vertices[i].pos.Diff(this.Vertices[j].pos);
-							let PPPP=this.Vertices[j].pos.LinComb(Direzione,1,Dati.FlowerPos[k])
 							
-							this.drawRotated(Immagine, ctx, 0, PPPP.x-15, PPPP.y-15, 30, 30);
+							let DirezioneNormale=Direzione.VettNorm();
+			
+							
+							
+							
+							let PPPP=this.Vertices[j].pos.LinComb(Direzione,1,Dati.FlowerPos[k]).Sum(DirezioneNormale.Rescale(Dati.FlowerOShift[k]));
+							let FlowerTTT=Math.min(Math.max(0,Dati.FlowerTTT[k]),Math.PI/2+0.2);
+							let FlowerDim=Dati.FlowerDim[k]*Math.sin(FlowerTTT);
+							if (FlowerDim>0) this.drawRotated(Immagine, ctx, Dati.FlowerAngle[k], PPPP.x-FlowerDim/2, PPPP.y-FlowerDim/2, FlowerDim, FlowerDim);
 						}
 					}
 					
