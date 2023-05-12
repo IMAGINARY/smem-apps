@@ -73,7 +73,7 @@ async function init() {
 	mouseyo=0;
 	
 	// Parametri vari
-	SogliaClick=10;
+	SogliaClick=30;
 	Soglia0=0.001;
 	
 	// Questo controlla se l'animazione è attiva o meno.
@@ -128,9 +128,6 @@ async function init() {
 	];
 	
 	
-	EdgePath=[[0,1,2],[3,4,5],[6,7,8,9,10,11],[12],[13]];
-
-	
 	
 	Transp=0.9;	
 
@@ -161,6 +158,7 @@ async function init() {
 		NameData=Edg[i][0].toString()+"-"+Edg[i][1].toString();
 		
 		Dati={
+		Vertici:[Edg[i][0],Edg[i][1]],
 		Subdivisions: 4,
 		NumeroBranch: 5,
 		Colors: ["#70af36","#42914f","#5ecc60","#3c7d5b","#5eba5b"],
@@ -205,38 +203,19 @@ function SearchInEdges(X,Edges,V) {
 }
 
 
-function GetEdgeTree(Previous) {
-	FinalTree=[];
-	EdgeVisited=0;
 
-	FoundEdge=SearchInEdges(Previous,Edg,0);
-	FinalTree.push(FoundEdge);
-	EdgeVisited++;
-	NextVertices=[];
-	for (let i=0;i<FoundEdge.length;i++) NextVertices.push(Edg[FoundEdge[i]][0]==Previous? Edg[FoundEdge[i]][1] : Edg[FoundEdge[i]][0]);
-	
-	for (let i=0;i<NextVertices.length;i++) {
-		FoundEdge=SearchInEdges(Previous,Edg,0);
-	
-	}
-
-}
-
-CurrentDraw=0;
-CurrentStatus=0;
 
 
 //LastMilliseconds=0;
 function Animazione() {
-	CurrentStatus+=0.006;
-	for (let i=0;i<EdgePath[CurrentDraw].length;i++) {
-		EdgeRef=GetEdgeName(Edg[EdgePath[CurrentDraw][i]]);
-		EdgeData[EdgeRef].TTT=CurrentStatus
-		
-	}
-	if (CurrentStatus >= 0.7 && CurrentDraw<EdgePath.length-1) {
-		CurrentDraw++
-		CurrentStatus=0;
+	CurrentStatus=1;
+	NM=Object.keys(EdgeData);
+	for (let i=0;i<NM.length;i++) {
+		if (G.CheckIfEdgesIntersects(EdgeData[NM[i]].Vertici[0],EdgeData[NM[i]].Vertici[1])==false) {
+			EdgeData[NM[i]].TTT+=0.003;
+		} else {
+			EdgeData[NM[i]].TTT=0;
+		}
 	}
 	Disegna();
 }

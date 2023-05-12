@@ -454,11 +454,8 @@ class Graph {
 					
 					//Controllo se c'è intersezione
 							this.BW=1
-							for (var k=0;k<this.IntersectingEdges.length;k++) {
-								if (this.IntersectingEdges[k][0]==i && this.IntersectingEdges[k][1]==j) this.BW=0;
-								if (this.IntersectingEdges[k][0]==j && this.IntersectingEdges[k][1]==i) this.BW=0;
-							
-							}
+							if (this.CheckIfEdgesIntersects(i,j)) this.BW=0;
+
 							//console.log([this.BW,i,j]);
 							
 							if (typeof EdgeData[i.toString()+"-"+j.toString()]!=="undefined") {
@@ -474,6 +471,16 @@ class Graph {
 		}	
 	
 	
+	}
+	
+	
+	CheckIfEdgesIntersects(i,j) {
+		for (var k=0;k<this.IntersectingEdges.length;k++) {
+			if (this.IntersectingEdges[k][0]==i && this.IntersectingEdges[k][1]==j) return true
+			if (this.IntersectingEdges[k][0]==j && this.IntersectingEdges[k][1]==i) return true
+		}
+		return false
+		
 	}
 	
 	
