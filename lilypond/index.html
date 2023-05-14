@@ -56,6 +56,9 @@ async function init() {
 	document.getElementById("Canvas").addEventListener('mousedown', ev_mousedown, false);
 	document.getElementById("Canvas").addEventListener('mouseup', ev_mouseup, false);
 	document.getElementById("Canvas").addEventListener('mousemove', ev_mousemove, false);
+	document.getElementById("Canvas").addEventListener('touchstart', ev_mousedown, false);
+	document.getElementById("Canvas").addEventListener('touchend', ev_mouseup, false);
+	document.getElementById("Canvas").addEventListener('touchmove', ev_mousemove, false);
 	
 	w=document.getElementById("DivCanvas").clientWidth;
 	h=document.getElementById("DivCanvas").clientHeight;
@@ -261,12 +264,23 @@ function Animazione() {
 
 function ev_mousemove (ev) {
 	// Get the mouse position relative to the canvas element.
+	/*
 	if (ev.clientX || ev.clientY == 0) { // Firefox
 		mousex = ev.layerX-ev.target.getBoundingClientRect().x-document.body.scrollLeft;
 		mousey = ev.layerY-ev.target.getBoundingClientRect().y-document.body.scrollTop;
 	} else if (ev.offsetX || ev.offsetX == 0) { // Opera
 		mousex = ev.offsetX-ev.target.getBoundingClientRect().x-document.body.scrollLeft;
 		mousey = ev.offsetY-ev.target.getBoundingClientRect().y-document.body.scrollTop;
+	}
+	*/
+	ev.preventDefault();
+	if (ev.changedTouches != null) {
+		touchobject = ev.changedTouches[0];
+		var mousex = touchobject.clientX - this.offsetLeft;
+		var mousey = touchobject.clientY - this.offsetTop;
+	} else {
+		var mousex = ev.clientX - this.offsetLeft;
+		var mousey = ev.clientY - this.offsetTop;
 	}
 	
 	if (PresoPt>-1) {
@@ -279,6 +293,7 @@ function ev_mousemove (ev) {
 
 function ev_mousedown (ev) {
 	// Get the mouse position relative to the canvas element.
+	/*
 	if (ev.layerX || ev.layerX == 0) { // Firefox
 		mousex = ev.layerX-ev.target.getBoundingClientRect().x-document.body.scrollLeft;
 		mousey = ev.layerY-ev.target.getBoundingClientRect().y-document.body.scrollTop;
@@ -286,8 +301,17 @@ function ev_mousedown (ev) {
 		mousex = ev.offsetX-ev.target.getBoundingClientRect().x-document.body.scrollLeft;
 		mousey = ev.offsetY-ev.target.getBoundingClientRect().y-document.body.scrollTop;
 	}
+	*/
 
-	console.log(mousex,mousey)
+	ev.preventDefault();
+	if (ev.changedTouches != null) {
+		touchobject = ev.changedTouches[0];
+		var mousex = touchobject.clientX - this.offsetLeft;
+		var mousey = touchobject.clientY - this.offsetTop;
+	} else {
+		var mousex = ev.clientX - this.offsetLeft;
+		var mousey = ev.clientY - this.offsetTop;
+	}
 			
 	for(var i=0; i<G.Vertices.length;i++) {
 		if ((mousex-G.Vertices[i].pos.x)*(mousex-G.Vertices[i].pos.x)+
