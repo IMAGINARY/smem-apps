@@ -47,9 +47,27 @@ function CountValenza(List,Val) {
 	return List.map((e, i) => e >=Val ? i : '').filter(String).length
 }
 
-function GeneratePlanarGraph(V) {
+function EdgeAlreadyExists(Edg,List) {
+	for (let i=0;i<List.length;i++) {
+		if ((Edg[0]==List[i][0] && Edg[1]==List[i][1]) || (Edg[1]==List[i][0] && Edg[0]==List[i][1])) return true
+	}
+	return false
+}
+
+function SelectCandidato(VerticiValenzaMinore,List) {
+	shuffle(VerticiValenzaMinore);
+	for (let i=0;i<VerticiValenzaMinore.length-1;i++) {
+			for (let j=i+1;j<VerticiValenzaMinore.length;j++) {
+				Candidato=[VerticiValenzaMinore[i],VerticiValenzaMinore[j]];
+				if (EdgeAlreadyExists(Candidato,List) == false) return Candidato;
+			}
+		}
+	return []
+}
+
+function GeneratePlanarGraph(V,MaxEdges) {
 	let Vertici=[]
-	let ValenzaVertici=[]
+	 ValenzaVertici=[]
 	for (let i=0;i<V;i++) {
 		Vertici.push([4*Math.cos(2*Math.PI*i/NumeroPunti),3*Math.sin(2*Math.PI*i/NumeroPunti)]);
 		ValenzaVertici.push(0);
@@ -65,23 +83,26 @@ function GeneratePlanarGraph(V) {
 	
 	
 	NumeroValenza4=Math.floor(Math.random()*4);
-	NumeroValenza3Max=6-NumeroValenza4;
-	NumeroValenza3=NumeroValenza4+Math.floor(Math.random()*NumeroValenza3Max);
+	console.log(NumeroValenza4);
+	NumeroValenza3Max=5-NumeroValenza4;
+	NumeroValenza3=1+NumeroValenza4+Math.floor(Math.random()*NumeroValenza3Max);
 	
 	while(CountValenza(ValenzaVertici,3)<NumeroValenza3) {
+		if (Edges.length>MaxEdges) return [Vertici, Edges]
 		VerticiValenzaMinore=ValenzaVertici.map((e, i) => e <3 ? i : '').filter(String);
-		shuffle(VerticiValenzaMinore);
-		Edges.push([VerticiValenzaMinore[0],VerticiValenzaMinore[1]]);
-		ValenzaVertici[VerticiValenzaMinore[0]]++;
-		ValenzaVertici[VerticiValenzaMinore[1]]++;
+		Candidato=SelectCandidato(VerticiValenzaMinore,Edges);
+		Edges.push(Candidato);
+		ValenzaVertici[Candidato[0]]++;
+		ValenzaVertici[Candidato[1]]++;
 	}
 	
 	while(CountValenza(ValenzaVertici,4)<NumeroValenza4) {
+		if (Edges.length>MaxEdges) return [Vertici, Edges]
 		VerticiValenzaMinore=ValenzaVertici.map((e, i) => e == 3 ? i : '').filter(String);
-		shuffle(VerticiValenzaMinore);
-		Edges.push([VerticiValenzaMinore[0],VerticiValenzaMinore[1]]);
-		ValenzaVertici[VerticiValenzaMinore[0]]++;
-		ValenzaVertici[VerticiValenzaMinore[1]]++;
+		Candidato=SelectCandidato(VerticiValenzaMinore,Edges);
+		Edges.push(Candidato);
+		ValenzaVertici[Candidato[0]]++;
+		ValenzaVertici[Candidato[1]]++;
 	}
 
 	
@@ -161,11 +182,11 @@ async function init() {
 	
 	L=80;
 	
-	NumeroPunti=10;
+	NumeroPunti=7;
 	
 	PresoPt=-1;
 	
-	AAAAA=GeneratePlanarGraph(NumeroPunti);
+	AAAAA=GeneratePlanarGraph(NumeroPunti,50);
 	Pts=AAAAA[0];
 	
 	
