@@ -12,10 +12,10 @@ async function setup()
 	//A little help for me by putting in the console the "solution"
 	console.log(math.transpose(math.lusolve(MatrixGame, new Array(LenghtArray).fill(1))));
 	
+	VettPicChosen=getRandomIntegers(LenghtArray, 9);
 	
 	for (i=0;i<LenghtArray;i++) {
-		RandomNumb=Math.floor(Math.random()*7).toString();
-		document.getElementById("light-wrapper").appendChild(await CreateImage(i,"lamp"+RandomNumb,"L","imglamps"));
+		document.getElementById("light-wrapper").appendChild(await CreateImage(i,"lamp"+VettPicChosen[i],"L","imglamps"));
 		document.getElementById("button-wrapper").appendChild(await CreateImage(i,"","B","imgbuttons",ChangeStatus));
 	}
 	
@@ -31,6 +31,25 @@ async function setup()
 
 
   
+}
+
+
+function getRandomIntegers(k, n) {
+  const result = [];
+  
+  // Generate an array of all integers from 0 to n
+  const allIntegers = Array.from({ length: n }, (_, index) => index);
+  
+  // Shuffle the array
+  for (let i = allIntegers.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [allIntegers[i], allIntegers[j]] = [allIntegers[j], allIntegers[i]];
+  }
+  
+  // Select the first k elements
+  result.push(...allIntegers.slice(0, k));
+  
+  return result;
 }
 
 async function LoadAudio(Src) {
