@@ -9,6 +9,8 @@
 <script src="files/Classe_GRAPH.js"></script>
 
 <script>
+//Boulder: https://pixy.org/209108/
+
 
 // Implemento la classe Pecorella, che rappresenta una pecorella. Ogni pecorella e' caratterizzata da
 // orig,dest: due indici che sono gli indici di due vertici del grafo G su cui si muove la pecorella (origine e destinazione)
@@ -363,6 +365,9 @@ async function init() {
 	document.getElementById("Canvas").addEventListener('mousedown', ev_mousedown, false);
 	document.getElementById("Canvas").addEventListener('mouseup', ev_mouseup, false);
 	document.getElementById("Canvas").addEventListener('mousemove', ev_mousemove, false);
+	document.getElementById("Canvas").addEventListener('touchstart', ev_mousedown, false);
+	document.getElementById("Canvas").addEventListener('touchend', ev_mouseup, false);
+	document.getElementById("Canvas").addEventListener('touchmove', ev_mousemove, false);
 	
 	w=document.getElementById("DivCanvas").clientWidth;
 	h=document.getElementById("DivCanvas").clientHeight;
@@ -541,13 +546,16 @@ function Animazione() {
 
 function ev_mousemove (ev) {
 	// Get the mouse position relative to the canvas element.
-	if (ev.clientX || ev.clientY == 0) { // Firefox
-		mousex = ev.layerX-ev.target.getBoundingClientRect().x-document.body.scrollLeft;
-		mousey = ev.layerY-ev.target.getBoundingClientRect().y-document.body.scrollTop;
-	} else if (ev.offsetX || ev.offsetX == 0) { // Opera
-		mousex = ev.offsetX-ev.target.getBoundingClientRect().x-document.body.scrollLeft;
-		mousey = ev.offsetY-ev.target.getBoundingClientRect().y-document.body.scrollTop;
+	ev.preventDefault();
+	if (ev.changedTouches != null) {
+		touchobject = ev.changedTouches[0];
+		mousex = touchobject.clientX - this.offsetLeft;
+		mousey = touchobject.clientY - this.offsetTop;
+	} else {
+		mousex = ev.clientX - this.offsetLeft;
+		mousey = ev.clientY - this.offsetTop;
 	}
+
 	
 	/*
 	// Permette di muovere i vertici del grafo
@@ -570,14 +578,15 @@ function ev_mousemove (ev) {
 
 function ev_mousedown (ev) {
 	// Get the mouse position relative to the canvas element.
-	if (ev.layerX || ev.layerX == 0) { // Firefox
-		mousex = ev.layerX-ev.target.getBoundingClientRect().x-document.body.scrollLeft;
-		mousey = ev.layerY-ev.target.getBoundingClientRect().y-document.body.scrollTop;
-	} else if (ev.offsetX || ev.offsetX == 0) { // Opera
-		mousex = ev.offsetX-ev.target.getBoundingClientRect().x-document.body.scrollLeft;
-		mousey = ev.offsetY-ev.target.getBoundingClientRect().y-document.body.scrollTop;
+	ev.preventDefault();
+	if (ev.changedTouches != null) {
+		touchobject = ev.changedTouches[0];
+		mousex = touchobject.clientX - this.offsetLeft;
+		mousey = touchobject.clientY - this.offsetTop;
+	} else {
+		mousex = ev.clientX - this.offsetLeft;
+		mousey = ev.clientY - this.offsetTop;
 	}
-
 	// Testo per vedere se ho cercato di prendere un blocco.
 	for(var i=0; i<Blocchi.length;i++) {
 		if ((mousex-Blocchi[i].pos.x)*(mousex-Blocchi[i].pos.x)+
