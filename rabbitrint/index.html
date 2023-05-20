@@ -171,7 +171,7 @@ function RemoveIsolatedCC(Vertices,Edges) {
 	}
 }
 
-function SelectBush(SBVertices,SBEdges,Position) {
+function SelectBush(SBVertices,SBEdges,Position, OtherBushes) {
 
 	
 	
@@ -179,6 +179,12 @@ function SelectBush(SBVertices,SBEdges,Position) {
 	let NewEdges=JSON.parse(JSON.stringify(SBEdges));
 	
 	let Adj=GetAdiacenti(Position,NewEdges);
+	
+	for (let i=0;i<OtherBushes.length;i++) {
+		for (const elem of GetAdiacenti(OtherBushes[i],NewEdges)) {
+			Adj.add(elem);
+		}
+	}
 	
 	if (Adj.has(Vertices.length-1) || Adj.has(Vertices.length-2)) return false
 	
@@ -194,8 +200,11 @@ function SelectBush(SBVertices,SBEdges,Position) {
 
 }
 
-function InitializeGraph(Data) {
 
+
+
+function InitializeGraph(Data) {
+	
 	
 	Pts=Data[0];
 	Edg=Data[1];
@@ -204,31 +213,39 @@ function InitializeGraph(Data) {
 	Initial_Berries=[];
 	Initial_Farms=[Pts.length-1];
 	
+	FarmX=w/2+L*Pts[Pts.length-1][0];
+	FarmY=h/2+L*Pts[Pts.length-1][1];
+	
+	StartX=w/2+L*Pts[Pts.length-2][0];
+	StartY=h/2+L*Pts[Pts.length-2][1];
+	
 	Transp=0.9;	
 
 	PecoreSalve=0;
 	PecoreFerme=0;
 	d_delay=400;
-	delay=0;
+	delay=50;
 	NPecorelle=10;
+	
 	Pecorelle=new Array();
+	
 	PTStart=Pts.length-2;
 	PtDir=Array.from(GetAdiacenti(PTStart,Edg))[0];
 	for (var i=0;i<NPecorelle;i++) {
-		let NP=new Pecorella(PTStart,PtDir,0,1,1/30,delay);
+		let NP=new Pecorella(PTStart,PtDir,0,1,1/50,delay);
 		Pecorelle.push(NP);
 		delay+=d_delay;
 	}
 	
-	
-	for (let i=0;i<10;i++) {
 
+	for (let i=0;i<100;i++) {
+		if (Initial_Berries.length>MaxBushes) break;
 		let Position=Math.floor(Math.random()*(Pts.length-2));
-		if (SelectBush(Pts,Edg,Position)) {
+		if (SelectBush(Pts,Edg,Position,Initial_Berries)) {
 			Initial_Berries.push(Position);
-		
 		}
 	}
+	
 	
 	// Raggio dei punti disegnati
 	rVMov = 6;
@@ -257,10 +274,10 @@ function InitializeGraph(Data) {
 	G.SetEuclideanDistances();
 	
 	//riposox=30,riposoy=30,x=30,y=30,stato=0,vert=-1
-	Blocchi=[];
-	Blocchi.push(new Blocco(new Vec2(30,30),new Vec2(30,30)));
-	Blocchi.push(new Blocco(new Vec2(120,30),new Vec2(120,30)));
-
+			Blocchi=[];
+	for (let j=0;j<NumRocks;j++) {
+		Blocchi.push(new Blocco(new Vec2(50+j*100,50),new Vec2(50+j*100,50)));
+	}
 	// Inizializzo un blocco già piazzato
 	//Blocchi.push(new Blocco(new Vec2(210,30),new Vec2(G.Vertices[6].pos.x,G.Vertices[6].pos.y),1,6));
 	//G.Vertices[6].type=3;
@@ -310,6 +327,11 @@ function GenerateGraph(W,H,NToglie) {
 	
 	return [Vertices,Edges]
 }
+
+
+
+
+
 
 
 // ------------------------------------------------------------------------------------------------
@@ -370,7 +392,7 @@ async function init() {
 	
 	// Parametri vari
 	Soglia0=0.001;
-	SogliaClick=20;
+	SogliaClick=50;
 	
 	// Questo controlla se l'animazione è attiva o meno.
 	AnimON = false;
@@ -382,14 +404,30 @@ async function init() {
 	
 	PresoPt=-1;
 	
+	
+	NumeroRighe=gup('r', document.location.search) || 6;
+	NumeroColonne=gup('c', document.location.search) || 8;
+	NumeroSuddivisioni=gup('c', document.location.search) || Math.floor((2*NumeroRighe*NumeroColonne-NumeroRighe-NumeroColonne)/2);
+	MaxBushes=gup('b', document.location.search) || 3;
+	NumRocks=gup('o', document.location.search) || 8;
 
-	InitializeGraph(GenerateGraph(9,7,60));
+	InitializeGraph(GenerateGraph(NumeroColonne,NumeroRighe,NumeroSuddivisioni));
+
 
 	
 	
 }
 
 
+
+function gup(name, url) {
+            if (!url) url = location.href;
+            name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+            var regexS = "[\\?&]" + name + "=([^&#]*)";
+            var regex = new RegExp(regexS);
+            var results = regex.exec(url);
+            return results == null ? null : results[1];
+        }
 
 
 function AggiornaVariabili() {
@@ -550,6 +588,10 @@ function ev_mousedown (ev) {
 			break;
 		}
 	}
+
+	if ((mousex-StartX)*(mousex-StartX)+(mousey-StartY+150)*(mousey-StartY+150)<50*50) {
+		StartStop();
+	}
 			
 	
 	
@@ -629,6 +671,127 @@ function CalcolaAngolo(A,B) {
 
 }
 
+function DrawGauge(ctx, C, R, N, Max) {
+  // Save the current context state
+  ctx.save();
+
+  // Draw the background circle
+  ctx.beginPath();
+  ctx.arc(C.x, C.y, R, Math.PI, 2 * Math.PI);
+  ctx.fillStyle = '#f0f0f0';
+  ctx.fill();
+  ctx.strokeStyle = '#ccc';
+  ctx.lineWidth = 4;
+  ctx.stroke();
+
+  // Calculate the current angle based on the current value
+  var angle = (N / Max) * Math.PI;
+
+  // Calculate the gradient colors based on N
+  var gradient = ctx.createLinearGradient(C.x, C.y - R, C.x, C.y);
+  gradient.addColorStop(0, 'darkgreen');
+  gradient.addColorStop(1, 'lightgreen');
+
+  // Draw the gauge arc
+  ctx.beginPath();
+  ctx.arc(C.x, C.y, R, Math.PI, Math.PI + angle);
+  ctx.lineTo(C.x, C.y);
+  ctx.closePath();
+  ctx.fillStyle = gradient;
+  ctx.shadowColor = gradient;
+  ctx.shadowBlur = 10;
+  ctx.fill();
+
+  // Calculate the coordinates of the indicator hand
+  var handLength = R * 0.8; // Length of the indicator hand as a fraction of the radius
+  var handX = C.x + Math.cos(Math.PI + angle) * handLength;
+  var handY = C.y + Math.sin(Math.PI + angle) * handLength;
+
+  // Draw the indicator hand
+  ctx.beginPath();
+  ctx.moveTo(C.x, C.y);
+  ctx.lineTo(C.x + Math.cos(Math.PI + angle) * (R - 10), C.y + Math.sin(Math.PI + angle) * (R - 10));
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = '#fff';
+  ctx.shadowColor = '#000';
+  ctx.shadowBlur = 5;
+  ctx.stroke();
+
+  // Draw the indicator circle
+  ctx.beginPath();
+  ctx.arc(C.x, C.y, 8, 0, Math.PI * 2);
+  ctx.fillStyle = '#fff';
+  ctx.shadowColor = '#000';
+  ctx.shadowBlur = 10;
+  ctx.fill();
+
+  // Restore the saved context state
+  ctx.restore();
+}
+
+
+
+function drawStart(ctx, C, R) {
+ // Draw the green circle
+  ctx.beginPath();
+  ctx.arc(C.x, C.y, R, 0, 2 * Math.PI);
+  ctx.fillStyle = 'green';
+  ctx.fill();
+  ctx.closePath();
+
+  // Calculate the triangle coordinates
+  const triangleSize = R / 2;
+  const triangleHeight = (Math.sqrt(3) / 2) * triangleSize;
+  
+  const triangleRight = C.x + triangleHeight / 2;
+  const triangleUp = C.y - triangleSize / 2;
+  const triangleDown = C.y + triangleSize / 2;
+  const triangleLeft = C.x - triangleHeight / 2;
+  const transleft=R/16;
+  
+  // Draw the triangle
+  ctx.beginPath();  
+  ctx.moveTo(triangleRight+transleft, C.y);
+  ctx.lineTo(triangleLeft+transleft, triangleUp);
+  ctx.lineTo(triangleLeft+transleft, triangleDown);
+  ctx.closePath();
+
+  // Set the triangle color to white
+  ctx.fillStyle = 'white';
+  ctx.fill();
+}
+
+
+function drawStop(ctx, C, R) {
+ // Draw the green circle
+  ctx.beginPath();
+  ctx.arc(C.x, C.y, R, 0, 2 * Math.PI);
+  ctx.fillStyle = '#bb0000';
+  ctx.fill();
+  ctx.closePath();
+
+  // Calculate the triangle coordinates
+  const SquareSize = R / 2;
+  
+  // Draw the square
+  ctx.beginPath();  
+  ctx.moveTo(C.x-SquareSize/2, C.y-SquareSize/2);
+  ctx.lineTo(C.x+SquareSize/2, C.y-SquareSize/2);
+  ctx.lineTo(C.x+SquareSize/2, C.y+SquareSize/2);
+  ctx.lineTo(C.x-SquareSize/2, C.y+SquareSize/2);
+  ctx.closePath();
+
+  // Set the triangle color to white
+  ctx.fillStyle = 'white';
+  ctx.fill();
+}
+
+
+
+
+
+
+
 function Disegna() {	
 	G.PlotGraph(ctx,blueb,salad,huut,blockim_Transp);	
 
@@ -645,6 +808,10 @@ function Disegna() {
 		drawRotated(blockim, ctx, 0, Blocchi[i].pos.x-30, Blocchi[i].pos.y-30, 60, 60);
 	}
 	
+	
+	DrawGauge(ctx, { x: FarmX, y: FarmY-100 }, 100, PecoreSalve, 10);
+	if (AnimStart)	drawStop(ctx, {x:StartX, y:StartY-150}, 50)
+	else drawStart(ctx, {x:StartX, y:StartY-150}, 50)
 }
 
 function AggiornaTesti() {
