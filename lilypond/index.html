@@ -65,6 +65,15 @@ function SelectCandidato(VerticiValenzaMinore,List) {
 	return []
 }
 
+function gup(name, url) {
+            if (!url) url = location.href;
+            name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+            var regexS = "[\\?&]" + name + "=([^&#]*)";
+            var regex = new RegExp(regexS);
+            var results = regex.exec(url);
+            return results == null ? null : results[1];
+        }
+
 function GeneratePlanarGraph(V,MaxEdges) {
 	let Vertici=[]
 	 ValenzaVertici=[]
@@ -182,8 +191,8 @@ async function init() {
 	
 	L=80;
 	
-	NumeroPunti=7;
-	
+	NumeroPunti=gup('v', document.location.search) || 6;
+	NumeroMaxEdges=gup('e', document.location.search) || 999;
 	PresoPt=-1;
 	
 	AAAAA=GeneratePlanarGraph(NumeroPunti,50);
