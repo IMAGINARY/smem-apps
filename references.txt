@@ -1,0 +1,19 @@
+List of reference for the image used
+
+Singing birds
+Birds: https://www.freepik.com/free-vector/birds-illustrations-collection_1111025.htm
+Mushroom: https://freesvg.org/rugby471-tango-style-mushroom
+Background: https://it.freepik.com/vettori-gratuito/scena-della-natura-con-molti-alberi_24895473.htm#query=sfondo%20bosco&position=20&from_view=keyword&track=ais
+
+
+Lilypond
+
+Pond: Drawn by me, inspired by sources on the web
+Background: Mathina
+
+
+Rabbit maze
+Boulder: https://pixy.org/209108/
+Carrot: https://iconduck.com/icons/168964/carrot
+Salad: https://www.svgrepo.com/svg/41684/salad
+Background: Mathina
