@@ -345,7 +345,7 @@ async function init() {
 	window.fps = 25;		 //Frame al secondo delle animazioni
 	window.AnimStart = false;	 //Stato animazioni default
 		
-	window.image = await GetImage("files/sheep.png");
+	window.image = await GetImage("files/bunny.png");
 	
 	window.blueb = await GetImage("files/carrot.png");
 	window.salad = await GetImage("files/salad.png");
@@ -810,7 +810,7 @@ function Disegna() {
 
 		let Sinistra=(G.Vertices[Pecorelle[i].orig].pos.x)*(1-Pecorelle[i].t)+(G.Vertices[Pecorelle[i].dest].pos.x)*Pecorelle[i].t;
 		let Alto=(G.Vertices[Pecorelle[i].orig].pos.y)*(1-Pecorelle[i].t)+(G.Vertices[Pecorelle[i].dest].pos.y)*Pecorelle[i].t
-		drawRotated(image, ctx, Ang, Sinistra-20, Alto-20, 40, 40);
+		drawRotated(image, ctx, Ang, Sinistra-25, Alto-25, 50, 50);
 	}
 	
 	for (var i=0;i<Blocchi.length;i++) {
