@@ -1,6 +1,15 @@
+function gup(name, url) {
+            if (!url) url = location.href;
+            name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+            var regexS = "[\\?&]" + name + "=([^&#]*)";
+            var regex = new RegExp(regexS);
+            var results = regex.exec(url);
+            return results == null ? null : results[1];
+        }
+
 async function setup()
 {
-	LenghtArray=6;
+	LenghtArray=Number(gup('birds', document.location.search)) || 6;
 	MatrixGame=GetNewMatrix(LenghtArray);
 	
 	//This is a very dangerous way to get an invertible matrix
