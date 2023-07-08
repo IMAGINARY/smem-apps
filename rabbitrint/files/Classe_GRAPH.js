@@ -391,7 +391,7 @@ class Graph {
 				break;
 				
 				case 2:
-					drawRotated(Hut, ctx, 0, this.Vertices[i].pos.x-50, this.Vertices[i].pos.y-50, 100, 100)
+					drawRotated(Hut, ctx, 0, this.Vertices[i].pos.x-75, this.Vertices[i].pos.y-75, 150, 150)
 				break;
 
 				case 3:
