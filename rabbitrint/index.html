@@ -219,8 +219,10 @@ function InitializeGraph(Data) {
 	FarmY=h/2+L*Pts[Pts.length-1][1];
 	
 	StartX=w/2+L*Pts[Pts.length-2][0];
-	StartY=h/2+L*Pts[Pts.length-2][1];
+	StartY=h/2+L*Pts[Pts.length-2][1]-120;
 	
+	FastForwardX=w/2+L*Pts[Pts.length-2][0];
+	FastForwardY=h/2+L*Pts[Pts.length-2][1]+20;
 	Transp=0.9;	
 
 	PecoreSalve=0;
@@ -601,9 +603,34 @@ function ev_mousedown (ev) {
 	if ((mousex-StartX)*(mousex-StartX)+(mousey-StartY+150)*(mousey-StartY+150)<50*50) {
 		StartStop();
 	}
+	
+	if (AnimStart && (mousex-FastForwardX)*(mousex-FastForwardX)+(mousey-FastForwardY+150)*(mousey-FastForwardY+150)<50*50) {
+		FF();
+	}
 			
 	
 	
+}
+
+Lento=1;
+function FF() {
+	if (Lento==1) {
+		CambiaSpeed(1/15);
+		Lento=0;
+	} else {
+		CambiaSpeed(1/50);
+		Lento=1;
+	}
+
+}
+
+
+function CambiaSpeed(S) {
+	for (var i=0;i<Pecorelle.length;i++) {
+		Pecorelle[i].v=S
+	
+	}
+
 }
 
 function ev_mouseup (ev) {
@@ -771,6 +798,47 @@ function drawStart(ctx, C, R) {
 }
 
 
+function drawFastForward(ctx, C, R,Col) {
+ // Draw the green circle
+  ctx.beginPath();
+  ctx.arc(C.x, C.y, R, 0, 2 * Math.PI);
+  ctx.fillStyle = Col;
+  ctx.fill();
+  ctx.closePath();
+
+  // Calculate the triangle coordinates
+  const triangleSize = R / 2;
+  const triangleHeight = (Math.sqrt(3) / 2) * triangleSize;
+  
+  const triangleRight = C.x + triangleHeight / 2;
+  const triangleUp = C.y - triangleSize / 2;
+  const triangleDown = C.y + triangleSize / 2;
+  const triangleLeft = C.x - triangleHeight / 2;
+  const transleft=R/16;
+  
+  // Draw the triangle
+  ctx.beginPath();  
+  ctx.moveTo(triangleRight-1*transleft, C.y);
+  ctx.lineTo(triangleLeft-1*transleft, triangleUp);
+  ctx.lineTo(triangleLeft-1*transleft, triangleDown);
+  ctx.closePath();
+
+  // Set the triangle color to white
+  ctx.fillStyle = 'white';
+  ctx.fill();
+  
+  // Draw the triangle
+  ctx.beginPath();  
+  ctx.moveTo(triangleRight+3*transleft, C.y);
+  ctx.lineTo(triangleLeft+3*transleft, triangleUp);
+  ctx.lineTo(triangleLeft+3*transleft, triangleDown);
+  ctx.closePath();
+
+  // Set the triangle color to white
+  ctx.fillStyle = 'white';
+  ctx.fill();
+}
+
 function drawStop(ctx, C, R) {
  // Draw the green circle
   ctx.beginPath();
@@ -795,7 +863,71 @@ function drawStop(ctx, C, R) {
   ctx.fill();
 }
 
+function drawPause(ctx, C, R) {
+ // Draw the green circle
+  ctx.beginPath();
+  ctx.arc(C.x, C.y, R, 0, 2 * Math.PI);
+  ctx.fillStyle = '#FFA500';
+  ctx.fill();
+  ctx.closePath();
 
+  // Calculate the triangle coordinates
+  const SquareSize = R / 2;
+  
+  // Draw the square
+  ctx.beginPath();  
+  ctx.moveTo(C.x-SquareSize/5-SquareSize/3, C.y-SquareSize/2);
+  ctx.lineTo(C.x+SquareSize/5-SquareSize/3, C.y-SquareSize/2);
+  ctx.lineTo(C.x+SquareSize/5-SquareSize/3, C.y+SquareSize/2);
+  ctx.lineTo(C.x-SquareSize/5-SquareSize/3, C.y+SquareSize/2);
+  ctx.closePath();
+  
+    // Set the triangle color to white
+  ctx.fillStyle = 'white';
+  ctx.fill();
+  
+  ctx.beginPath();  
+  ctx.moveTo(C.x-SquareSize/5+SquareSize/3, C.y-SquareSize/2);
+  ctx.lineTo(C.x+SquareSize/5+SquareSize/3, C.y-SquareSize/2);
+  ctx.lineTo(C.x+SquareSize/5+SquareSize/3, C.y+SquareSize/2);
+  ctx.lineTo(C.x-SquareSize/5+SquareSize/3, C.y+SquareSize/2);
+  ctx.closePath();
+
+  // Set the triangle color to white
+  ctx.fillStyle = 'white';
+  ctx.fill();
+}
+
+
+function drawReload(ctx, C, R) {
+  // Draw the green circle
+  ctx.beginPath();
+  ctx.arc(C.x, C.y, R, 0, 2 * Math.PI);
+  ctx.fillStyle = 'green';
+  ctx.fill();
+  ctx.closePath();
+
+  // Draw the arrow
+  const arrowSize = R / 2;
+  const arrowTailSize = arrowSize / 4;
+  const arrowTailHeight = arrowSize / 2;
+  
+  const arrowTailX = C.x - arrowSize / 2;
+  const arrowTailY = C.y - arrowTailHeight / 2;
+  
+  const arrowHeadX = C.x + arrowSize / 2;
+  const arrowHeadY = C.y;
+  
+  ctx.beginPath();
+  ctx.moveTo(arrowTailX, arrowTailY);
+  ctx.lineTo(arrowTailX, arrowTailY + arrowTailHeight);
+  ctx.lineTo(arrowHeadX, arrowHeadY);
+  ctx.closePath();
+
+  // Set the arrow color to white
+  ctx.fillStyle = 'white';
+  ctx.fill();
+}
 
 
 
@@ -819,8 +951,14 @@ function Disegna() {
 	
 	
 	DrawGauge(ctx, { x: FarmX, y: FarmY-100 }, 100, PecoreSalve, 10);
-	if (AnimStart)	drawStop(ctx, {x:StartX, y:StartY-150}, 50)
+	if (AnimStart)	drawPause(ctx, {x:StartX, y:StartY-150}, 50)
 	else drawStart(ctx, {x:StartX, y:StartY-150}, 50)
+	
+	if (AnimStart) {
+	
+	if (Lento) drawFastForward(ctx, {x:FastForwardX, y:FastForwardY-150}, 50,'gray')
+	else drawFastForward(ctx, {x:FastForwardX, y:FastForwardY-150}, 50,'blue')
+	}
 }
 
 function AggiornaTesti() {
