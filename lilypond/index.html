@@ -1,348 +1,376 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<title>Waterlilies</title>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Waterlilies</title>
 
-<link href='files/Prova_CSS.css' rel="stylesheet" />
-<script src="files/Prova_CommonFunctions.js"></script>
-<script src="files/Classe_GRAPH.js"></script>
+    <link href="files/Prova_CSS.css" rel="stylesheet" />
+    <script src="files/Prova_CommonFunctions.js"></script>
+    <script src="files/Classe_GRAPH.js"></script>
 
-<script>
+    <script>
+      async function GetImage(UrlImage) {
+        return new Promise((resolve, reject) => {
+          Immagine = new Image(60, 45);
+          Immagine.src = UrlImage;
+          Immagine.onload = () => resolve(Immagine);
+        });
+      }
 
+      var seed = 1;
+      function random() {
+        var x = Math.sin(seed++) * 10000;
+        return x - Math.floor(x);
+      }
 
-async function GetImage(UrlImage) {
-	return new Promise((resolve, reject) => {
-		Immagine=new Image(60, 45); 
-		Immagine.src = UrlImage;
-		Immagine.onload = () => resolve(Immagine)
-	});
-}
+      function shuffle(array) {
+        let currentIndex = array.length,
+          randomIndex;
 
-var seed = 1;
-function random() {
-    var x = Math.sin(seed++) * 10000;
-    return x - Math.floor(x);
-}
+        // While there remain elements to shuffle.
+        while (currentIndex != 0) {
+          // Pick a remaining element.
+          randomIndex = Math.floor(Math.random() * currentIndex);
+          currentIndex--;
 
-
-function shuffle(array) {
-  let currentIndex = array.length,  randomIndex;
-
-  // While there remain elements to shuffle.
-  while (currentIndex != 0) {
-
-    // Pick a remaining element.
-    randomIndex = Math.floor(Math.random() * currentIndex);
-    currentIndex--;
-
-    // And swap it with the current element.
-    [array[currentIndex], array[randomIndex]] = [
-      array[randomIndex], array[currentIndex]];
-  }
-
-  return array;
-}
-
-function CountValenza(List,Val) {
-	return List.map((e, i) => e >=Val ? i : '').filter(String).length
-}
-
-function EdgeAlreadyExists(Edg,List) {
-	for (let i=0;i<List.length;i++) {
-		if ((Edg[0]==List[i][0] && Edg[1]==List[i][1]) || (Edg[1]==List[i][0] && Edg[0]==List[i][1])) return true
-	}
-	return false
-}
-
-function SelectCandidato(VerticiValenzaMinore,List) {
-	shuffle(VerticiValenzaMinore);
-	for (let i=0;i<VerticiValenzaMinore.length-1;i++) {
-			for (let j=i+1;j<VerticiValenzaMinore.length;j++) {
-				Candidato=[VerticiValenzaMinore[i],VerticiValenzaMinore[j]];
-				if (EdgeAlreadyExists(Candidato,List) == false) return Candidato;
-			}
-		}
-	return []
-}
-
-function gup(name, url) {
-            if (!url) url = location.href;
-            name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
-            var regexS = "[\\?&]" + name + "=([^&#]*)";
-            var regex = new RegExp(regexS);
-            var results = regex.exec(url);
-            return results == null ? null : results[1];
+          // And swap it with the current element.
+          [array[currentIndex], array[randomIndex]] = [
+            array[randomIndex],
+            array[currentIndex],
+          ];
         }
 
-function GeneratePlanarGraph(V,MaxEdges) {
-	let Vertici=[]
-	 ValenzaVertici=[]
-	for (let i=0;i<V;i++) {
-		Vertici.push([4*Math.cos(2*Math.PI*i/NumeroPunti),3*Math.sin(2*Math.PI*i/NumeroPunti)]);
-		ValenzaVertici.push(0);
-	}
-	
-	
-	let Edges=[]
-	for (let i=0;i<V-1;i++) {
-		Edges.push([i,i+1])
-		ValenzaVertici[i]++;
-		ValenzaVertici[i+1]++;
-	}
-	
-	
-	NumeroValenza4=Math.floor(Math.random()*4);
-	console.log(NumeroValenza4);
-	NumeroValenza3Max=5-NumeroValenza4;
-	NumeroValenza3=1+NumeroValenza4+Math.floor(Math.random()*NumeroValenza3Max);
-	
-	while(CountValenza(ValenzaVertici,3)<NumeroValenza3) {
-		if (Edges.length>MaxEdges) return [Vertici, Edges]
-		VerticiValenzaMinore=ValenzaVertici.map((e, i) => e <3 ? i : '').filter(String);
-		Candidato=SelectCandidato(VerticiValenzaMinore,Edges);
-		Edges.push(Candidato);
-		ValenzaVertici[Candidato[0]]++;
-		ValenzaVertici[Candidato[1]]++;
-	}
-	
-	while(CountValenza(ValenzaVertici,4)<NumeroValenza4) {
-		if (Edges.length>MaxEdges) return [Vertici, Edges]
-		VerticiValenzaMinore=ValenzaVertici.map((e, i) => e == 3 ? i : '').filter(String);
-		Candidato=SelectCandidato(VerticiValenzaMinore,Edges);
-		Edges.push(Candidato);
-		ValenzaVertici[Candidato[0]]++;
-		ValenzaVertici[Candidato[1]]++;
-	}
+        return array;
+      }
 
-	
+      function CountValenza(List, Val) {
+        return List.map((e, i) => (e >= Val ? i : "")).filter(String).length;
+      }
 
-	shuffle(Vertici);
-	return [Vertici, Edges]
-}
+      function EdgeAlreadyExists(Edg, List) {
+        for (let i = 0; i < List.length; i++) {
+          if (
+            (Edg[0] == List[i][0] && Edg[1] == List[i][1]) ||
+            (Edg[1] == List[i][0] && Edg[0] == List[i][1])
+          )
+            return true;
+        }
+        return false;
+      }
 
-async function init() {
+      function SelectCandidato(VerticiValenzaMinore, List) {
+        shuffle(VerticiValenzaMinore);
+        for (let i = 0; i < VerticiValenzaMinore.length - 1; i++) {
+          for (let j = i + 1; j < VerticiValenzaMinore.length; j++) {
+            Candidato = [VerticiValenzaMinore[i], VerticiValenzaMinore[j]];
+            if (EdgeAlreadyExists(Candidato, List) == false) return Candidato;
+          }
+        }
+        return [];
+      }
 
-	window.fps = 25;		 //Frame al secondo delle animazioni
-	window.AnimStart = false;	 //Stato animazioni default
+      function gup(name, url) {
+        if (!url) url = location.href;
+        name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+        var regexS = "[\\?&]" + name + "=([^&#]*)";
+        var regex = new RegExp(regexS);
+        var results = regex.exec(url);
+        return results == null ? null : results[1];
+      }
 
-	
-	window.f1 = await GetImage("files/f1.png");
-	
-	window.f2 = await GetImage("files/f2.png");
-	
-	window.f3 = await GetImage("files/f3.png");
-	
-	window.f4 = await GetImage("files/f4.png");
-	
-	window.f5 = await GetImage("files/f5.png");
-	
-	window.l1=await GetImage("files/l1.png");
-	window.l2=await GetImage("files/l2.png");
-	
-	FF=[f1,f2,f3,f4,f5];
-	
-	LL=[l1,l2];
-	
-	/* Passaggi per la gestione animazioni */
-	window.Now;
-	window.Then = Date.now();
-	window.Interval = 1000/fps;
+      function GeneratePlanarGraph(V, MaxEdges) {
+        let Vertici = [];
+        ValenzaVertici = [];
+        for (let i = 0; i < V; i++) {
+          Vertici.push([
+            4 * Math.cos((2 * Math.PI * i) / NumeroPunti),
+            3 * Math.sin((2 * Math.PI * i) / NumeroPunti),
+          ]);
+          ValenzaVertici.push(0);
+        }
 
-	document.getElementById("Canvas").addEventListener('mousedown', ev_mousedown, false);
-	document.getElementById("Canvas").addEventListener('mouseup', ev_mouseup, false);
-	document.getElementById("Canvas").addEventListener('mousemove', ev_mousemove, false);
-	document.getElementById("Canvas").addEventListener('touchstart', ev_mousedown, false);
-	document.getElementById("Canvas").addEventListener('touchend', ev_mouseup, false);
-	document.getElementById("Canvas").addEventListener('touchmove', ev_mousemove, false);
-	
-	w=document.getElementById("DivCanvas").clientWidth;
-	h=document.getElementById("DivCanvas").clientHeight;
+        let Edges = [];
+        for (let i = 0; i < V - 1; i++) {
+          Edges.push([i, i + 1]);
+          ValenzaVertici[i]++;
+          ValenzaVertici[i + 1]++;
+        }
 
-	document.getElementById("Canvas").width=w;
-	document.getElementById("Canvas").height=h;
-	
-	window.ctx=document.getElementById("Canvas").getContext('2d');
-	window.fps= 25;//Frame al secondo delle animazioni
-	window.Interval = 1000/fps;
-	window.AnimStart = false;	 //Stato animazioni default
-	
-	ctx.lineWidth=1;		
-	ctx.fillStyle="rgb(0,0,0)";		
-	
-	/* Passaggi per la gestione animazioni */
-	window.Now;
-	window.Then = Date.now();
-	
-	// Queste mi servono per controllare i click nel canvas
-	mousex=0;
-	mousey=0;
-	mousexo=0;
-	mouseyo=0;
-	
-	// Parametri vari
-	SogliaClick=60;
-	Soglia0=0.001;
-	
-	// Questo controlla se l'animazione è attiva o meno.
-	AnimON = false;
-	
-	// Raggio del punto
-	r = 4;
-	
-	L=80;
-	
-	NumeroPunti=gup('v', document.location.search) || 6;
-	NumeroMaxEdges=gup('e', document.location.search) || 999;
-	PresoPt=-1;
-	
-	AAAAA=GeneratePlanarGraph(NumeroPunti,50);
-	Pts=AAAAA[0];
-	
-	
-	
-	Berries=[8,27,32];
-	Fattorie=[29];
-	
-	Edg=AAAAA[1];
-	
-	
-	
-	Transp=0.9;	
+        NumeroValenza4 = Math.floor(Math.random() * 4);
+        console.log(NumeroValenza4);
+        NumeroValenza3Max = 5 - NumeroValenza4;
+        NumeroValenza3 =
+          1 + NumeroValenza4 + Math.floor(Math.random() * NumeroValenza3Max);
 
-	NPecorelle=50;
-	PecoreSalve=0;
-	PecoreFerme=0;
-	d_delay=100;
-	delay=0;
+        while (CountValenza(ValenzaVertici, 3) < NumeroValenza3) {
+          if (Edges.length > MaxEdges) return [Vertici, Edges];
+          VerticiValenzaMinore = ValenzaVertici.map((e, i) =>
+            e < 3 ? i : ""
+          ).filter(String);
+          Candidato = SelectCandidato(VerticiValenzaMinore, Edges);
+          Edges.push(Candidato);
+          ValenzaVertici[Candidato[0]]++;
+          ValenzaVertici[Candidato[1]]++;
+        }
 
-	
-	
-	// Raggio dei punti disegnati
-	rVMov = 6;
-	rVFix = 1;
-	
-	PresoPt=-1;		
-	G = new Graph();
-		
-	for (var i=0;i<Pts.length;i++) {
-		G.AddVertex(w/2+L*Pts[i][0],h/2+L*Pts[i][1],1,0);
-	}
-	
-	EdgeData={}
+        while (CountValenza(ValenzaVertici, 4) < NumeroValenza4) {
+          if (Edges.length > MaxEdges) return [Vertici, Edges];
+          VerticiValenzaMinore = ValenzaVertici.map((e, i) =>
+            e == 3 ? i : ""
+          ).filter(String);
+          Candidato = SelectCandidato(VerticiValenzaMinore, Edges);
+          Edges.push(Candidato);
+          ValenzaVertici[Candidato[0]]++;
+          ValenzaVertici[Candidato[1]]++;
+        }
 
-	for (var i=0;i<Edg.length;i++) {
-		G.adjMat[Edg[i][0]][Edg[i][1]]=1;
-		G.adjMat[Edg[i][1]][Edg[i][0]]=1;
-		if (Edg[i][0]<Edg[i][1]) {
-			NameData=Edg[i][0].toString()+"-"+Edg[i][1].toString();
-		} else {
-			NameData=Edg[i][1].toString()+"-"+Edg[i][0].toString();
-		}
-		let NumeroFiori=Math.floor(Math.random()*2+2);
-		Dati={
-			Vertici:[Edg[i][0],Edg[i][1]],
-			Subdivisions: 4,
-			NumeroBranch: 5,
-			Colors: ["#70af36","#42914f","#5ecc60","#3c7d5b","#5eba5b"],
-			PanceSuddivisioni: [3,Math.floor(Math.random()*5+2),Math.floor(Math.random()*5+2),Math.floor(Math.random()*5+2),Math.floor(Math.random()*5+2)],
-			SpessoreSuddivisioni: [2,8,3,2,1],
-			SottoBranch: [false,false,false,false],
-			TTT: 0,
-			RandomSuddivisioni: Array.from({length: 50}, () => (Math.random() -0.5)),
-			RandomControlPoint: Array.from({length: 50}, () => (Math.random() -0.5)),
-			FlowerType: Array.from({length: NumeroFiori}, () => (Math.floor(Math.random()*2))),
-			FlowerPos: GetRandomButSpaced(NumeroFiori,0.5/NumeroFiori),
-			FlowerTTT: Array.from({length: NumeroFiori}, () => (-Math.random())),
-			FlowerDim: Array.from({length: NumeroFiori}, () => (50+Math.floor(Math.random()*30))),
-			FlowerAngle: Array.from({length: NumeroFiori}, () => (Math.random()*360)),
-			FlowerOShift: Array.from({length: NumeroFiori}, () => 0.1*(Math.random() -0.5)),
-		}
-		
+        shuffle(Vertici);
+        return [Vertici, Edges];
+      }
 
-		
-		EdgeData[NameData]=Dati;
-	}
-	
-	G.Simmetrizza();
-	G.SetEuclideanDistances();
-	G.CheckIntersectionTest();
-	PartenzaAnimazione();
-		
-	
-}
+      async function init() {
+        window.fps = 25; //Frame al secondo delle animazioni
+        window.AnimStart = false; //Stato animazioni default
 
+        window.f1 = await GetImage("files/f1.png");
 
-function GetRandomButSpaced(N,D) {
-	let Risposta=new Array(N);
-	for (let i=0;i<N;i++) Risposta[i]=D*(Math.random()-0.5)+(i+1)/(N+1);
-	return Risposta;
-}
+        window.f2 = await GetImage("files/f2.png");
 
-function GetEdgeName(E) {
-	return E[0].toString()+"-"+E[1].toString();
-}
+        window.f3 = await GetImage("files/f3.png");
 
+        window.f4 = await GetImage("files/f4.png");
 
-QQQ=0;
+        window.f5 = await GetImage("files/f5.png");
 
-function SearchInEdges(X,Edges,V) {
-	Result=[];
-	for (let i=0;i<Edges.length;i++) {
-		if (Edges[i][V]==X) Result.push(i);
-	}
-	
-	return Result;
-}
+        window.l1 = await GetImage("files/l1.png");
+        window.l2 = await GetImage("files/l2.png");
 
+        FF = [f1, f2, f3, f4, f5];
 
+        LL = [l1, l2];
 
+        /* Passaggi per la gestione animazioni */
+        window.Now;
+        window.Then = Date.now();
+        window.Interval = 1000 / fps;
 
+        document
+          .getElementById("Canvas")
+          .addEventListener("mousedown", ev_mousedown, false);
+        document
+          .getElementById("Canvas")
+          .addEventListener("mouseup", ev_mouseup, false);
+        document
+          .getElementById("Canvas")
+          .addEventListener("mousemove", ev_mousemove, false);
+        document
+          .getElementById("Canvas")
+          .addEventListener("touchstart", ev_mousedown, false);
+        document
+          .getElementById("Canvas")
+          .addEventListener("touchend", ev_mouseup, false);
+        document
+          .getElementById("Canvas")
+          .addEventListener("touchmove", ev_mousemove, false);
 
-//LastMilliseconds=0;
-function Animazione() {
-	CurrentStatus=1;
-	NM=Object.keys(EdgeData);
-	CanFlower=true;
-	for (let i=0;i<NM.length;i++) {
-		if (G.CheckIfEdgesIntersects(EdgeData[NM[i]].Vertici[0],EdgeData[NM[i]].Vertici[1])==false) {
-			if (EdgeData[NM[i]].TTT<1) {
-				EdgeData[NM[i]].TTT+=0.003;
-				CanFlower=false;
-			}
-		} else {
-			EdgeData[NM[i]].TTT=0;
-		}
-		
-		if (G.StartFlowering==true) {
-			for (let k=0;k<EdgeData[NM[i]].FlowerTTT.length;k++) {
-				EdgeData[NM[i]].FlowerTTT[k]+=0.03;
-			}
-		}
-	}
-	
-	if (G.IntersectingEdges.length==0 && CanFlower==true) {
-		G.StartFlowering=true
-		
-	}
-	else {
-		if (G.StartFlowering==true) {
-			G.StartFlowering=false
-			for (let i=0;i<NM.length;i++) {
-			for (let k=0;k<EdgeData[NM[i]].FlowerTTT.length;k++) {
-				EdgeData[NM[i]].FlowerTTT[k]=0;
-			}
-			}
-	
-		}
-	}
-	Disegna();
-}
+        w = document.getElementById("DivCanvas").clientWidth;
+        h = document.getElementById("DivCanvas").clientHeight;
 
+        document.getElementById("Canvas").width = w;
+        document.getElementById("Canvas").height = h;
 
+        window.ctx = document.getElementById("Canvas").getContext("2d");
+        window.fps = 25; //Frame al secondo delle animazioni
+        window.Interval = 1000 / fps;
+        window.AnimStart = false; //Stato animazioni default
 
-function ev_mousemove (ev) {
-	// Get the mouse position relative to the canvas element.
-	/*
+        ctx.lineWidth = 1;
+        ctx.fillStyle = "rgb(0,0,0)";
+
+        /* Passaggi per la gestione animazioni */
+        window.Now;
+        window.Then = Date.now();
+
+        // Queste mi servono per controllare i click nel canvas
+        mousex = 0;
+        mousey = 0;
+        mousexo = 0;
+        mouseyo = 0;
+
+        // Parametri vari
+        SogliaClick = 60;
+        Soglia0 = 0.001;
+
+        // Questo controlla se l'animazione è attiva o meno.
+        AnimON = false;
+
+        // Raggio del punto
+        r = 4;
+
+        L = 80;
+
+        NumeroPunti = gup("v", document.location.search) || 6;
+        NumeroMaxEdges = gup("e", document.location.search) || 999;
+        PresoPt = -1;
+
+        AAAAA = GeneratePlanarGraph(NumeroPunti, 50);
+        Pts = AAAAA[0];
+
+        Berries = [8, 27, 32];
+        Fattorie = [29];
+
+        Edg = AAAAA[1];
+
+        Transp = 0.9;
+
+        NPecorelle = 50;
+        PecoreSalve = 0;
+        PecoreFerme = 0;
+        d_delay = 100;
+        delay = 0;
+
+        // Raggio dei punti disegnati
+        rVMov = 6;
+        rVFix = 1;
+
+        PresoPt = -1;
+        G = new Graph();
+
+        for (var i = 0; i < Pts.length; i++) {
+          G.AddVertex(w / 2 + L * Pts[i][0], h / 2 + L * Pts[i][1], 1, 0);
+        }
+
+        EdgeData = {};
+
+        for (var i = 0; i < Edg.length; i++) {
+          G.adjMat[Edg[i][0]][Edg[i][1]] = 1;
+          G.adjMat[Edg[i][1]][Edg[i][0]] = 1;
+          if (Edg[i][0] < Edg[i][1]) {
+            NameData = Edg[i][0].toString() + "-" + Edg[i][1].toString();
+          } else {
+            NameData = Edg[i][1].toString() + "-" + Edg[i][0].toString();
+          }
+          let NumeroFiori = Math.floor(Math.random() * 2 + 2);
+          Dati = {
+            Vertici: [Edg[i][0], Edg[i][1]],
+            Subdivisions: 4,
+            NumeroBranch: 5,
+            Colors: ["#70af36", "#42914f", "#5ecc60", "#3c7d5b", "#5eba5b"],
+            PanceSuddivisioni: [
+              3,
+              Math.floor(Math.random() * 5 + 2),
+              Math.floor(Math.random() * 5 + 2),
+              Math.floor(Math.random() * 5 + 2),
+              Math.floor(Math.random() * 5 + 2),
+            ],
+            SpessoreSuddivisioni: [2, 8, 3, 2, 1],
+            SottoBranch: [false, false, false, false],
+            TTT: 0,
+            RandomSuddivisioni: Array.from(
+              { length: 50 },
+              () => Math.random() - 0.5
+            ),
+            RandomControlPoint: Array.from(
+              { length: 50 },
+              () => Math.random() - 0.5
+            ),
+            FlowerType: Array.from({ length: NumeroFiori }, () =>
+              Math.floor(Math.random() * 2)
+            ),
+            FlowerPos: GetRandomButSpaced(NumeroFiori, 0.5 / NumeroFiori),
+            FlowerTTT: Array.from(
+              { length: NumeroFiori },
+              () => -Math.random()
+            ),
+            FlowerDim: Array.from(
+              { length: NumeroFiori },
+              () => 50 + Math.floor(Math.random() * 30)
+            ),
+            FlowerAngle: Array.from(
+              { length: NumeroFiori },
+              () => Math.random() * 360
+            ),
+            FlowerOShift: Array.from(
+              { length: NumeroFiori },
+              () => 0.1 * (Math.random() - 0.5)
+            ),
+          };
+
+          EdgeData[NameData] = Dati;
+        }
+
+        G.Simmetrizza();
+        G.SetEuclideanDistances();
+        G.CheckIntersectionTest();
+        PartenzaAnimazione();
+      }
+
+      function GetRandomButSpaced(N, D) {
+        let Risposta = new Array(N);
+        for (let i = 0; i < N; i++)
+          Risposta[i] = D * (Math.random() - 0.5) + (i + 1) / (N + 1);
+        return Risposta;
+      }
+
+      function GetEdgeName(E) {
+        return E[0].toString() + "-" + E[1].toString();
+      }
+
+      QQQ = 0;
+
+      function SearchInEdges(X, Edges, V) {
+        Result = [];
+        for (let i = 0; i < Edges.length; i++) {
+          if (Edges[i][V] == X) Result.push(i);
+        }
+
+        return Result;
+      }
+
+      //LastMilliseconds=0;
+      function Animazione() {
+        CurrentStatus = 1;
+        NM = Object.keys(EdgeData);
+        CanFlower = true;
+        for (let i = 0; i < NM.length; i++) {
+          if (
+            G.CheckIfEdgesIntersects(
+              EdgeData[NM[i]].Vertici[0],
+              EdgeData[NM[i]].Vertici[1]
+            ) == false
+          ) {
+            if (EdgeData[NM[i]].TTT < 1) {
+              EdgeData[NM[i]].TTT += 0.003;
+              CanFlower = false;
+            }
+          } else {
+            EdgeData[NM[i]].TTT = 0;
+          }
+
+          if (G.StartFlowering == true) {
+            for (let k = 0; k < EdgeData[NM[i]].FlowerTTT.length; k++) {
+              EdgeData[NM[i]].FlowerTTT[k] += 0.03;
+            }
+          }
+        }
+
+        if (G.IntersectingEdges.length == 0 && CanFlower == true) {
+          G.StartFlowering = true;
+        } else {
+          if (G.StartFlowering == true) {
+            G.StartFlowering = false;
+            for (let i = 0; i < NM.length; i++) {
+              for (let k = 0; k < EdgeData[NM[i]].FlowerTTT.length; k++) {
+                EdgeData[NM[i]].FlowerTTT[k] = 0;
+              }
+            }
+          }
+        }
+        Disegna();
+      }
+
+      function ev_mousemove(ev) {
+        // Get the mouse position relative to the canvas element.
+        /*
 	if (ev.clientX || ev.clientY == 0) { // Firefox
 		mousex = ev.layerX-ev.target.getBoundingClientRect().x-document.body.scrollLeft;
 		mousey = ev.layerY-ev.target.getBoundingClientRect().y-document.body.scrollTop;
@@ -351,27 +379,27 @@ function ev_mousemove (ev) {
 		mousey = ev.offsetY-ev.target.getBoundingClientRect().y-document.body.scrollTop;
 	}
 	*/
-	ev.preventDefault();
-	if (ev.changedTouches != null) {
-		touchobject = ev.changedTouches[0];
-		var mousex = touchobject.clientX - this.offsetLeft;
-		var mousey = touchobject.clientY - this.offsetTop;
-	} else {
-		var mousex = ev.clientX - this.offsetLeft;
-		var mousey = ev.clientY - this.offsetTop;
-	}
-	
-	if (PresoPt>-1) {
-		G.Vertices[PresoPt].pos.x=mousex;
-		G.Vertices[PresoPt].pos.y=mousey;
-		G.CheckIntersectionTest();
-		Disegna();
-	}
-}
+        ev.preventDefault();
+        if (ev.changedTouches != null) {
+          touchobject = ev.changedTouches[0];
+          var mousex = touchobject.clientX - this.offsetLeft;
+          var mousey = touchobject.clientY - this.offsetTop;
+        } else {
+          var mousex = ev.clientX - this.offsetLeft;
+          var mousey = ev.clientY - this.offsetTop;
+        }
 
-function ev_mousedown (ev) {
-	// Get the mouse position relative to the canvas element.
-	/*
+        if (PresoPt > -1) {
+          G.Vertices[PresoPt].pos.x = mousex;
+          G.Vertices[PresoPt].pos.y = mousey;
+          G.CheckIntersectionTest();
+          Disegna();
+        }
+      }
+
+      function ev_mousedown(ev) {
+        // Get the mouse position relative to the canvas element.
+        /*
 	if (ev.layerX || ev.layerX == 0) { // Firefox
 		mousex = ev.layerX-ev.target.getBoundingClientRect().x-document.body.scrollLeft;
 		mousey = ev.layerY-ev.target.getBoundingClientRect().y-document.body.scrollTop;
@@ -381,53 +409,48 @@ function ev_mousedown (ev) {
 	}
 	*/
 
-	ev.preventDefault();
-	if (ev.changedTouches != null) {
-		touchobject = ev.changedTouches[0];
-		var mousex = touchobject.clientX - this.offsetLeft;
-		var mousey = touchobject.clientY - this.offsetTop;
-	} else {
-		var mousex = ev.clientX - this.offsetLeft;
-		var mousey = ev.clientY - this.offsetTop;
-	}
-			
-	for(var i=0; i<G.Vertices.length;i++) {
-		if ((mousex-G.Vertices[i].pos.x)*(mousex-G.Vertices[i].pos.x)+
-			(mousey-G.Vertices[i].pos.y)*(mousey-G.Vertices[i].pos.y)<SogliaClick*SogliaClick+1) {
-			PresoPt=i;
-			break;
-		}
-	}
-	
-}
+        ev.preventDefault();
+        if (ev.changedTouches != null) {
+          touchobject = ev.changedTouches[0];
+          var mousex = touchobject.clientX - this.offsetLeft;
+          var mousey = touchobject.clientY - this.offsetTop;
+        } else {
+          var mousex = ev.clientX - this.offsetLeft;
+          var mousey = ev.clientY - this.offsetTop;
+        }
 
-function ev_mouseup (ev) {
-	PresoPt=-1;
-	
-}
+        for (var i = 0; i < G.Vertices.length; i++) {
+          if (
+            (mousex - G.Vertices[i].pos.x) * (mousex - G.Vertices[i].pos.x) +
+              (mousey - G.Vertices[i].pos.y) * (mousey - G.Vertices[i].pos.y) <
+            SogliaClick * SogliaClick + 1
+          ) {
+            PresoPt = i;
+            break;
+          }
+        }
+      }
 
+      function ev_mouseup(ev) {
+        PresoPt = -1;
+      }
 
-// ------------------------------------------------------------------------------------------------
-// Funzione che disegna tutto
-// ------------------------------------------------------------------------------------------------
+      // ------------------------------------------------------------------------------------------------
+      // Funzione che disegna tutto
+      // ------------------------------------------------------------------------------------------------
 
+      function Disegna() {
+        G.PlotBranch(ctx, FF, QQQ);
+        G.PlotLeaves();
+        G.PlotFlowers();
+      }
+    </script>
+  </head>
 
-
-function Disegna() {	
-	G.PlotBranch(ctx,FF,QQQ);	
-	G.PlotLeaves();
-	G.PlotFlowers();
-}
-
-</script>
-
-</head>
-<body onload='init()' onkeydown="KeyPressed(event);">
-
-<div id="DivCanvas">
-<div id="DivCanvas">
-	<canvas id="Canvas"></canvas> 
-</div>
-
-</body>
+  <body onload="init()" onkeydown="KeyPressed(event);">
+    <div id="DivCanvas">
+      <canvas id="Canvas"></canvas>
+    </div>
+    <script src="../common-js/reloadButton.js"></script>
+  </body>
 </html>

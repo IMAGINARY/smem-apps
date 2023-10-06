@@ -1,565 +1,572 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<title>Sheeps</title>
-
-<link href='files/Prova_CSS.css' rel="stylesheet" />
-<script src="files/Prova_CommonFunctions.js"></script>
-
-<script src="files/Classe_GRAPH.js"></script>
-
-<script>
-//Boulder: https://pixy.org/209108/
-
-
-// Implemento la classe Pecorella, che rappresenta una pecorella. Ogni pecorella e' caratterizzata da
-// orig,dest: due indici che sono gli indici di due vertici del grafo G su cui si muove la pecorella (origine e destinazione)
-// t: rappresenta, in relazione all'intervallo [0,1], la posizione della pecorella sul lato di estremi i vertici orig e dest 
-// stato: 0=ferma (permanentemente), 1=movimento, 2=attesa (non ferma permanentemente, deve scegliere che fare)
-// v: velocita' della pecorella (NON percentuale)
-// delay: dopo quanto tempo la pecorella inizia a muoversi all'inizio
-
-class Pecorella {
-	constructor(orig=0,dest=0,t=0,stato=1,v=1/100,delay=1000) {
-		this.orig=orig;
-		this.dest=dest;
-		this.t=t;
-		this.stato=stato;
-		this.v=v;
-		this.delay=delay;
-	}	
-}
-
-
-// stato: 0="a riposo", 1=posizionato nel labirinto, 2=deve tornare a riposo
-class Blocco {
-	constructor(riposo=new Vec2(30,30),pos=new Vec2(30,30),stato=0,vert=-1) {
-		this.riposo=riposo;
-		this.pos=pos;
-		this.vert=vert;
-		this.stato=stato;
-	}	
-}
-
-
-async function GetImage(UrlImage) {
-	return new Promise((resolve, reject) => {
-		Immagine=new Image(60, 45); 
-		Immagine.src = UrlImage;
-		Immagine.onload = () => resolve(Immagine)
-	});
-}
-
-function VInE(V,E) {
-	if (E[0]==V) return 0;
-	if (E[1]==V) return 1;
-	return -1
-}
-
-function GetAdiacenti(Vertex,Edges) {
-	Risposta=new Set([]);
-	for (let i=0;i<Edges.length;i++) {
-		Trov=VInE(Vertex,Edges[i])
-		if (Trov!=-1) {Risposta.add(Edges[i][1-Trov]);
-		}
-	}
-	return Risposta
-}
-
-function CheckVertexInTree(Vertices,Edges,Start) {
-	Raggiunti=new Set([]);
-	Inserire=[Start];
-	//debugger;
-	while (Inserire.length>0) {
-		Curr=Inserire[0];
-		if (Raggiunti.has(Curr)==false) {
-			Raggiunti.add(Curr);
-			Nuovi=[...GetAdiacenti(Curr,Edges)];
-			for (let i=0;i<Nuovi.length;i++) {
-				if (!Raggiunti.has(Nuovi[i])) {
-				Inserire.push(Nuovi[i]);
-			}
-		}
-	}
-	Inserire.shift()
-	}
-	
-	return Raggiunti
-
-}
-
-function RemoveABunchOfEdges(Vertices,Edges,N) {
-	for (let i=0;i<N;i++) {
-		NuoviEdges=RemoveRandomEdge(Edges);
-		//console.log(Edges.length);
-		//console.log(NuoviEdges.length);
-		Raggiunti=CheckVertexInTree(Vertices,NuoviEdges,Vertices.length-2);
-		if (Raggiunti.has(Vertices.length-1) && Raggiunti.has(Vertices.length-2)) {
-			//console.log("Tutto a posto");
-			Edges=JSON.parse(JSON.stringify(NuoviEdges));
-			//console.log(Edges.length);
-		}
-	}
-	return Edges
-
-}
-
-
-function RemoveRandomEdge(Edges) {
-	NuoviEdges=JSON.parse(JSON.stringify(Edges));
-	let DaRimuovere=Math.floor(Math.random()*Edges.length);
-	NuoviEdges.splice(DaRimuovere,1);
-	return NuoviEdges
-}
-
-function CheckGraphConnected(Vertices,Edges) {
-	for (let i=0;i<Vertices.length;i++) {
-		Raggiunti=CheckVertexInTree(Vertices,Edges,i);
-		if (Raggiunti.size<Vertices.length) return false
-	}
-	
-	return true
-}
-
-function RemoveIsolatedVertices(Vertices,Edges) {
-	//debugger;
-	for (let i=0;i<Vertices.length;i++) {
-		Raggiunti=CheckVertexInTree(Vertices,Edges,i);
-		if (Raggiunti.size==1) {
-			RemoveVertex(Vertices,Edges,i);
-			i--;
-		}
-	}
-}
-
-function RemoveVertex(RVVertices,RVEdges,V) {
-	i=0;
-	while (i<RVEdges.length) {		
-		if (RVEdges[i][0]==V || RVEdges[i][1]==V) RVEdges.splice(i, 1);
-		else {
-			if (RVEdges[i][0]>V) RVEdges[i][0]--;
-			if (RVEdges[i][1]>V) RVEdges[i][1]--;
-			i++;
-		}
-		
-	}
-	RVVertices.splice(V,1);
-}
-
-
-
-function CheckConnectedComponent(Vertices,Edges,V) {
-
-	Raggiunti=CheckVertexInTree(Vertices,Edges,V);
-	if (Raggiunti.has(Vertices.length-1) || Raggiunti.has(Vertices.length-2)) {
-		//console.log("La componente contiene uno dei due vertici, non la rimuovo")
-	} else {
-		let DaRimuovere = Array.from(Raggiunti);
-		DaRimuovere.sort((a,b)=>b-a);
-		//console.log(DaRimuovere);
-		for (let i=0;i<DaRimuovere.length;i++) {
-			RemoveVertex(Vertices,Edges,DaRimuovere[i]);
-			
-		}
-		return true
-	}
-	return false
-}
-
-function RemoveIsolatedCC(Vertices,Edges) {
-	let V=0;
-	while (V<Vertices.length) {
-		if (!CheckConnectedComponent(Vertices,Edges,V)) V++
-	}
-}
-
-function SelectBush(SBVertices,SBEdges,Position, OtherBushes) {
-
-	
-	
-	let NewVertices=JSON.parse(JSON.stringify(SBVertices));
-	let NewEdges=JSON.parse(JSON.stringify(SBEdges));
-	
-	let Adj=GetAdiacenti(Position,NewEdges);
-	
-	for (let i=0;i<OtherBushes.length;i++) {
-		for (const elem of GetAdiacenti(OtherBushes[i],NewEdges)) {
-			Adj.add(elem);
-		}
-	}
-	
-	if (Adj.has(Vertices.length-1) || Adj.has(Vertices.length-2)) return false
-	
-	let DaRimuovere = Array.from(Adj);
-	DaRimuovere.sort((a,b)=>b-a);
-	//console.log(DaRimuovere);
-	for (let i=0;i<DaRimuovere.length;i++) {
-		RemoveVertex(NewVertices,NewEdges,DaRimuovere[i]);
-	}
-	if (PathBeginningEnd(NewVertices,NewEdges)) return true
-	else return false
-
-
-}
-
-
-
-
-function InitializeGraph(Data) {
-	
-	
-	Pts=Data[0];
-	Edg=Data[1];
-	
-	
-	Initial_Berries=[];
-	Initial_Farms=[Pts.length-1];
-	
-	FarmX=w/2+L*Pts[Pts.length-1][0];
-	FarmY=h/2+L*Pts[Pts.length-1][1];
-	
-	StartX=w/2+L*Pts[Pts.length-2][0];
-	StartY=h/2+L*Pts[Pts.length-2][1]-120;
-	
-	FastForwardX=w/2+L*Pts[Pts.length-2][0];
-	FastForwardY=h/2+L*Pts[Pts.length-2][1]+20;
-	Transp=0.9;	
-
-	PecoreSalve=0;
-	PecoreFerme=0;
-	d_delay=400;
-	delay=50;
-	NPecorelle=10;
-	
-	Pecorelle=new Array();
-	
-	PTStart=Pts.length-2;
-	PtDir=Array.from(GetAdiacenti(PTStart,Edg))[0];
-	for (var i=0;i<NPecorelle;i++) {
-		let NP=new Pecorella(PTStart,PtDir,0,1,1/50,delay);
-		Pecorelle.push(NP);
-		delay+=d_delay;
-	}
-	
-
-	for (let i=0;i<100;i++) {
-		if (Initial_Berries.length>MaxBushes) break;
-		let Position=Math.floor(Math.random()*(Pts.length-2));
-		if (SelectBush(Pts,Edg,Position,Initial_Berries)) {
-			Initial_Berries.push(Position);
-		}
-	}
-	
-	
-	// Raggio dei punti disegnati
-	rVMov = 6;
-	rVFix = 1;
-	
-	PresoPt=-1;		
-	PresoBl=-1;		
-
-	
-	G = new Graph();
-		
-	for (var i=0;i<Pts.length;i++) {
-		G.AddVertex(w/2+L*Pts[i][0],h/2+L*Pts[i][1],1,0);
-	}
-	for (var i=0;i<Initial_Berries.length;i++) {
-		G.Vertices[Initial_Berries[i]].type=1;
-	}
-	for (var i=0;i<Initial_Farms.length;i++) {
-		G.Vertices[Initial_Farms[i]].type=2;
-	}
-	
-	for (var i=0;i<Edg.length;i++) {
-		G.adjMat[Edg[i][0]][Edg[i][1]]=1;
-	}
-	G.Simmetrizza();
-	G.SetEuclideanDistances();
-	
-	//riposox=30,riposoy=30,x=30,y=30,stato=0,vert=-1
-			Blocchi=[];
-	for (let j=0;j<NumRocks;j++) {
-		Blocchi.push(new Blocco(new Vec2(50+j*100,50),new Vec2(50+j*100,50)));
-	}
-	// Inizializzo un blocco già piazzato
-	//Blocchi.push(new Blocco(new Vec2(210,30),new Vec2(G.Vertices[6].pos.x,G.Vertices[6].pos.y),1,6));
-	//G.Vertices[6].type=3;
-	
-	
-
-	G.PlotGraph(ctx,blueb,huut,blockim_Transp);	
-	
-	AggiornaVariabili();
-	
-
-	Disegna();
-	
-
-}
-
-function PathBeginningEnd(Vertices,Edges) {
-	return CheckVertexInTree(Vertices,Edges,Vertices.length-2).has(Vertices.length-1);
-}
-
-
-
-function GenerateGraph(W,H,NToglie) {
-	Vertices=[];
-	Edges=[];
-	
-	for (let i=0;i<W*H;i++) {
-	Pos=[i%W - W/2, Math.floor(i/W)-H/2];
-		Vertices.push(Pos);
-		if (i%W<W-1) Edges.push([i,i+1]);
-		if (Math.floor(i/W)<H-1) Edges.push([i,i+W]);
-	}
-	
-
-	StartVertex=W*Math.floor(H/2);
-	EndVertex=W*Math.floor(H/2)+W-1;
-	
-	Edges.push([StartVertex,Vertices.length]);
-	Vertices.push([-6,Vertices[StartVertex][1]]);
-	Edges.push([EndVertex,Vertices.length]);
-	Vertices.push([6,Vertices[EndVertex][1]]);
-	
-	Edges=RemoveABunchOfEdges(Vertices,Edges,NToglie);
-	
-	RemoveIsolatedCC(Vertices,Edges)
-
-	
-	return [Vertices,Edges]
-}
-
-
-
-
-
-
-
-// ------------------------------------------------------------------------------------------------
-// Funzione init
-// ------------------------------------------------------------------------------------------------
-
-async function init() {
-	
-	window.fps = 25;		 //Frame al secondo delle animazioni
-	window.AnimStart = false;	 //Stato animazioni default
-		
-	window.image = await GetImage("files/bunny.png");
-	
-	window.blueb = await GetImage("files/carrot.png");
-	window.salad = await GetImage("files/salad.png");
-	
-	window.huut = await GetImage("files/hut.png");
-
-	window.blockim = await GetImage("files/Police.png");
-
-	window.blockim_Transp = await GetImage("files/Police_transp.png");
-
-		
-	/* Passaggi per la gestione animazioni */
-	window.Now;
-	window.Then = Date.now();
-	window.Interval = 1000/fps;
-
-	document.getElementById("Canvas").addEventListener('mousedown', ev_mousedown, false);
-	document.getElementById("Canvas").addEventListener('mouseup', ev_mouseup, false);
-	document.getElementById("Canvas").addEventListener('mousemove', ev_mousemove, false);
-	document.getElementById("Canvas").addEventListener('touchstart', ev_mousedown, false);
-	document.getElementById("Canvas").addEventListener('touchend', ev_mouseup, false);
-	document.getElementById("Canvas").addEventListener('touchmove', ev_mousemove, false);
-	
-	w=document.getElementById("DivCanvas").clientWidth;
-	h=document.getElementById("DivCanvas").clientHeight;
-
-	document.getElementById("Canvas").width=w;
-	document.getElementById("Canvas").height=h;
-	
-	window.ctx=document.getElementById("Canvas").getContext('2d');
-	window.fps= 25;//Frame al secondo delle animazioni
-	window.Interval = 1000/fps;
-	window.AnimStart = false;	 //Stato animazioni default
-	
-	ctx.lineWidth=1;		
-	ctx.fillStyle="rgb(0,0,0)";		
-	
-	/* Passaggi per la gestione animazioni */
-	window.Now;
-	window.Then = Date.now();
-	
-	audioEl=new Audio("./files/Sheep.mp3");
-	
-	// Queste mi servono per controllare i click nel canvas
-	mousex=0;
-	mousey=0;
-	mousexo=0;
-	mouseyo=0;
-	
-	// Parametri vari
-	Soglia0=0.001;
-	SogliaClick=50;
-	
-	// Questo controlla se l'animazione è attiva o meno.
-	AnimON = false;
-	
-	// Raggio del punto
-	r = 4;
-	
-	L=80;
-	
-	PresoPt=-1;
-	
-	
-	NumeroRighe=gup('r', document.location.search) || 6;
-	NumeroColonne=gup('c', document.location.search) || 8;
-	NumeroSuddivisioni=gup('c', document.location.search) || Math.floor((2*NumeroRighe*NumeroColonne-NumeroRighe-NumeroColonne)/2);
-	MaxBushes=gup('b', document.location.search) || 3;
-	NumRocks=gup('o', document.location.search) || 8;
-
-	InitializeGraph(GenerateGraph(NumeroColonne,NumeroRighe,NumeroSuddivisioni));
-
-
-	
-	
-}
-
-
-
-function gup(name, url) {
-            if (!url) url = location.href;
-            name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
-            var regexS = "[\\?&]" + name + "=([^&#]*)";
-            var regex = new RegExp(regexS);
-            var results = regex.exec(url);
-            return results == null ? null : results[1];
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Sheeps</title>
+
+    <link href="files/Prova_CSS.css" rel="stylesheet" />
+    <script src="files/Prova_CommonFunctions.js"></script>
+
+    <script src="files/Classe_GRAPH.js"></script>
+
+    <script>
+      //Boulder: https://pixy.org/209108/
+
+      // Implemento la classe Pecorella, che rappresenta una pecorella. Ogni pecorella e' caratterizzata da
+      // orig,dest: due indici che sono gli indici di due vertici del grafo G su cui si muove la pecorella (origine e destinazione)
+      // t: rappresenta, in relazione all'intervallo [0,1], la posizione della pecorella sul lato di estremi i vertici orig e dest
+      // stato: 0=ferma (permanentemente), 1=movimento, 2=attesa (non ferma permanentemente, deve scegliere che fare)
+      // v: velocita' della pecorella (NON percentuale)
+      // delay: dopo quanto tempo la pecorella inizia a muoversi all'inizio
+
+      class Pecorella {
+        constructor(
+          orig = 0,
+          dest = 0,
+          t = 0,
+          stato = 1,
+          v = 1 / 100,
+          delay = 1000
+        ) {
+          this.orig = orig;
+          this.dest = dest;
+          this.t = t;
+          this.stato = stato;
+          this.v = v;
+          this.delay = delay;
+        }
+      }
+
+      // stato: 0="a riposo", 1=posizionato nel labirinto, 2=deve tornare a riposo
+      class Blocco {
+        constructor(
+          riposo = new Vec2(30, 30),
+          pos = new Vec2(30, 30),
+          stato = 0,
+          vert = -1
+        ) {
+          this.riposo = riposo;
+          this.pos = pos;
+          this.vert = vert;
+          this.stato = stato;
+        }
+      }
+
+      async function GetImage(UrlImage) {
+        return new Promise((resolve, reject) => {
+          Immagine = new Image(60, 45);
+          Immagine.src = UrlImage;
+          Immagine.onload = () => resolve(Immagine);
+        });
+      }
+
+      function VInE(V, E) {
+        if (E[0] == V) return 0;
+        if (E[1] == V) return 1;
+        return -1;
+      }
+
+      function GetAdiacenti(Vertex, Edges) {
+        Risposta = new Set([]);
+        for (let i = 0; i < Edges.length; i++) {
+          Trov = VInE(Vertex, Edges[i]);
+          if (Trov != -1) {
+            Risposta.add(Edges[i][1 - Trov]);
+          }
+        }
+        return Risposta;
+      }
+
+      function CheckVertexInTree(Vertices, Edges, Start) {
+        Raggiunti = new Set([]);
+        Inserire = [Start];
+        //debugger;
+        while (Inserire.length > 0) {
+          Curr = Inserire[0];
+          if (Raggiunti.has(Curr) == false) {
+            Raggiunti.add(Curr);
+            Nuovi = [...GetAdiacenti(Curr, Edges)];
+            for (let i = 0; i < Nuovi.length; i++) {
+              if (!Raggiunti.has(Nuovi[i])) {
+                Inserire.push(Nuovi[i]);
+              }
+            }
+          }
+          Inserire.shift();
         }
 
+        return Raggiunti;
+      }
 
-function AggiornaVariabili() {
+      function RemoveABunchOfEdges(Vertices, Edges, N) {
+        for (let i = 0; i < N; i++) {
+          NuoviEdges = RemoveRandomEdge(Edges);
+          //console.log(Edges.length);
+          //console.log(NuoviEdges.length);
+          Raggiunti = CheckVertexInTree(
+            Vertices,
+            NuoviEdges,
+            Vertices.length - 2
+          );
+          if (
+            Raggiunti.has(Vertices.length - 1) &&
+            Raggiunti.has(Vertices.length - 2)
+          ) {
+            //console.log("Tutto a posto");
+            Edges = JSON.parse(JSON.stringify(NuoviEdges));
+            //console.log(Edges.length);
+          }
+        }
+        return Edges;
+      }
 
-	// Movimento blocchi
-	for (var i=0;i<Blocchi.length;i++) {
-		if (Blocchi[i].stato==2) {
-			var dist_temp=Blocchi[i].pos.Dist(Blocchi[i].riposo);
-			if (dist_temp<10+1) {
-				Blocchi[i].pos.x=Blocchi[i].riposo.x;
-				Blocchi[i].pos.y=Blocchi[i].riposo.y;
-				Blocchi[i].stato=0;
-			}
-			else {
-				Blocchi[i].pos.x=Blocchi[i].pos.x+1*(Blocchi[i].riposo.x-Blocchi[i].pos.x)/Math.sqrt(dist_temp);
-				Blocchi[i].pos.y=Blocchi[i].pos.y+1*(Blocchi[i].riposo.y-Blocchi[i].pos.y)/Math.sqrt(dist_temp);
-			}
-		}
-	}
+      function RemoveRandomEdge(Edges) {
+        NuoviEdges = JSON.parse(JSON.stringify(Edges));
+        let DaRimuovere = Math.floor(Math.random() * Edges.length);
+        NuoviEdges.splice(DaRimuovere, 1);
+        return NuoviEdges;
+      }
 
-	// Movimento pecorelle
-	for (var i=0;i<Pecorelle.length;i++) {
-	
-		if (Pecorelle[i].delay>0) {
-			Pecorelle[i].delay=Math.max(0,Pecorelle[i].delay-10);
-		}
-		else {
-			if ((Pecorelle[i].stato==1) && (Pecorelle[i].orig!=Pecorelle[i].dest)) {
-				Pecorelle[i].t=Math.min(Pecorelle[i].t+L*Pecorelle[i].v/G.weightMat[Pecorelle[i].orig][Pecorelle[i].dest],1);
-				if (Pecorelle[i].t==1) {
-					Pecorelle[i].stato=2;
-				}
-			}
+      function CheckGraphConnected(Vertices, Edges) {
+        for (let i = 0; i < Vertices.length; i++) {
+          Raggiunti = CheckVertexInTree(Vertices, Edges, i);
+          if (Raggiunti.size < Vertices.length) return false;
+        }
 
-			// Comportamento pecorelle in attesa		
-			if (Pecorelle[i].stato==2) {
-				
-				// La pecorella ha trovato un cespuglio di bacche. 
-				if (G.Vertices[Pecorelle[i].dest].type==1) {
-					//console.log("BACCHE - Orig: " + Pecorelle[i].orig + " Dest: " + Pecorelle[i].dest + " Stato: " + Pecorelle[i].stato + " t: " + Pecorelle[i].t);
-					Pecorelle[i].stato=0;
-					PecoreFerme++;
-					AggiornaTesti();
-					//console.log("Pecorella "+i+" bloccata a mangiare le bacche (velenose e mortali)");
-				}
-				// La pecorella ha raggiunto una fattoria. 
-				if (G.Vertices[Pecorelle[i].dest].type==2) {
-					//console.log("FATTORIA - Orig: " + Pecorelle[i].orig + " Dest: " + Pecorelle[i].dest + " Stato: " + Pecorelle[i].stato + " t: " + Pecorelle[i].t);
-					Pecorelle[i].stato=0;
-					PecoreSalve++;
-					AggiornaTesti();
-					//console.log("Pecorella "+i+" arrivata alla fattoria!");
-				}
-				
-				// La pecorella procede con un nuovo sentiero (o quello vecchio se e' in un vicolo cieco)	
-				if ((G.Vertices[Pecorelle[i].dest].type==0) || G.Vertices[Pecorelle[i].dest].type==3) {
-					// Mi scrivo quali sono i vertici adiacenti alla destinazione, escludendo quello da cui vengo.
-					DestPoss=[];
-					
-					if (G.Vertices[Pecorelle[i].dest].type==0) {
-						for(var j=0;j<G.Vertices.length;j++) {
-							if ((Pecorelle[i].orig!=j) && (G.adjMat[Pecorelle[i].dest][j]==1)) {
-								DestPoss.push(j);
-							}
-						}
-						/*
+        return true;
+      }
+
+      function RemoveIsolatedVertices(Vertices, Edges) {
+        //debugger;
+        for (let i = 0; i < Vertices.length; i++) {
+          Raggiunti = CheckVertexInTree(Vertices, Edges, i);
+          if (Raggiunti.size == 1) {
+            RemoveVertex(Vertices, Edges, i);
+            i--;
+          }
+        }
+      }
+
+      function RemoveVertex(RVVertices, RVEdges, V) {
+        i = 0;
+        while (i < RVEdges.length) {
+          if (RVEdges[i][0] == V || RVEdges[i][1] == V) RVEdges.splice(i, 1);
+          else {
+            if (RVEdges[i][0] > V) RVEdges[i][0]--;
+            if (RVEdges[i][1] > V) RVEdges[i][1]--;
+            i++;
+          }
+        }
+        RVVertices.splice(V, 1);
+      }
+
+      function CheckConnectedComponent(Vertices, Edges, V) {
+        Raggiunti = CheckVertexInTree(Vertices, Edges, V);
+        if (
+          Raggiunti.has(Vertices.length - 1) ||
+          Raggiunti.has(Vertices.length - 2)
+        ) {
+          //console.log("La componente contiene uno dei due vertici, non la rimuovo")
+        } else {
+          let DaRimuovere = Array.from(Raggiunti);
+          DaRimuovere.sort((a, b) => b - a);
+          //console.log(DaRimuovere);
+          for (let i = 0; i < DaRimuovere.length; i++) {
+            RemoveVertex(Vertices, Edges, DaRimuovere[i]);
+          }
+          return true;
+        }
+        return false;
+      }
+
+      function RemoveIsolatedCC(Vertices, Edges) {
+        let V = 0;
+        while (V < Vertices.length) {
+          if (!CheckConnectedComponent(Vertices, Edges, V)) V++;
+        }
+      }
+
+      function SelectBush(SBVertices, SBEdges, Position, OtherBushes) {
+        let NewVertices = JSON.parse(JSON.stringify(SBVertices));
+        let NewEdges = JSON.parse(JSON.stringify(SBEdges));
+
+        let Adj = GetAdiacenti(Position, NewEdges);
+
+        for (let i = 0; i < OtherBushes.length; i++) {
+          for (const elem of GetAdiacenti(OtherBushes[i], NewEdges)) {
+            Adj.add(elem);
+          }
+        }
+
+        if (Adj.has(Vertices.length - 1) || Adj.has(Vertices.length - 2))
+          return false;
+
+        let DaRimuovere = Array.from(Adj);
+        DaRimuovere.sort((a, b) => b - a);
+        //console.log(DaRimuovere);
+        for (let i = 0; i < DaRimuovere.length; i++) {
+          RemoveVertex(NewVertices, NewEdges, DaRimuovere[i]);
+        }
+        if (PathBeginningEnd(NewVertices, NewEdges)) return true;
+        else return false;
+      }
+
+      function InitializeGraph(Data) {
+        Pts = Data[0];
+        Edg = Data[1];
+
+        Initial_Berries = [];
+        Initial_Farms = [Pts.length - 1];
+
+        FarmX = w / 2 + L * Pts[Pts.length - 1][0];
+        FarmY = h / 2 + L * Pts[Pts.length - 1][1];
+
+        StartX = w / 2 + L * Pts[Pts.length - 2][0];
+        StartY = h / 2 + L * Pts[Pts.length - 2][1] - 120;
+
+        FastForwardX = w / 2 + L * Pts[Pts.length - 2][0];
+        FastForwardY = h / 2 + L * Pts[Pts.length - 2][1] + 20;
+        Transp = 0.9;
+
+        PecoreSalve = 0;
+        PecoreFerme = 0;
+        d_delay = 400;
+        delay = 50;
+        NPecorelle = 10;
+
+        Pecorelle = new Array();
+
+        PTStart = Pts.length - 2;
+        PtDir = Array.from(GetAdiacenti(PTStart, Edg))[0];
+        for (var i = 0; i < NPecorelle; i++) {
+          let NP = new Pecorella(PTStart, PtDir, 0, 1, 1 / 50, delay);
+          Pecorelle.push(NP);
+          delay += d_delay;
+        }
+
+        for (let i = 0; i < 100; i++) {
+          if (Initial_Berries.length > MaxBushes) break;
+          let Position = Math.floor(Math.random() * (Pts.length - 2));
+          if (SelectBush(Pts, Edg, Position, Initial_Berries)) {
+            Initial_Berries.push(Position);
+          }
+        }
+
+        // Raggio dei punti disegnati
+        rVMov = 6;
+        rVFix = 1;
+
+        PresoPt = -1;
+        PresoBl = -1;
+
+        G = new Graph();
+
+        for (var i = 0; i < Pts.length; i++) {
+          G.AddVertex(w / 2 + L * Pts[i][0], h / 2 + L * Pts[i][1], 1, 0);
+        }
+        for (var i = 0; i < Initial_Berries.length; i++) {
+          G.Vertices[Initial_Berries[i]].type = 1;
+        }
+        for (var i = 0; i < Initial_Farms.length; i++) {
+          G.Vertices[Initial_Farms[i]].type = 2;
+        }
+
+        for (var i = 0; i < Edg.length; i++) {
+          G.adjMat[Edg[i][0]][Edg[i][1]] = 1;
+        }
+        G.Simmetrizza();
+        G.SetEuclideanDistances();
+
+        //riposox=30,riposoy=30,x=30,y=30,stato=0,vert=-1
+        Blocchi = [];
+        for (let j = 0; j < NumRocks; j++) {
+          Blocchi.push(
+            new Blocco(new Vec2(50 + j * 100, 50), new Vec2(50 + j * 100, 50))
+          );
+        }
+        // Inizializzo un blocco già piazzato
+        //Blocchi.push(new Blocco(new Vec2(210,30),new Vec2(G.Vertices[6].pos.x,G.Vertices[6].pos.y),1,6));
+        //G.Vertices[6].type=3;
+
+        G.PlotGraph(ctx, blueb, huut, blockim_Transp);
+
+        AggiornaVariabili();
+
+        Disegna();
+      }
+
+      function PathBeginningEnd(Vertices, Edges) {
+        return CheckVertexInTree(Vertices, Edges, Vertices.length - 2).has(
+          Vertices.length - 1
+        );
+      }
+
+      function GenerateGraph(W, H, NToglie) {
+        Vertices = [];
+        Edges = [];
+
+        for (let i = 0; i < W * H; i++) {
+          Pos = [(i % W) - W / 2, Math.floor(i / W) - H / 2];
+          Vertices.push(Pos);
+          if (i % W < W - 1) Edges.push([i, i + 1]);
+          if (Math.floor(i / W) < H - 1) Edges.push([i, i + W]);
+        }
+
+        StartVertex = W * Math.floor(H / 2);
+        EndVertex = W * Math.floor(H / 2) + W - 1;
+
+        Edges.push([StartVertex, Vertices.length]);
+        Vertices.push([-6, Vertices[StartVertex][1]]);
+        Edges.push([EndVertex, Vertices.length]);
+        Vertices.push([6, Vertices[EndVertex][1]]);
+
+        Edges = RemoveABunchOfEdges(Vertices, Edges, NToglie);
+
+        RemoveIsolatedCC(Vertices, Edges);
+
+        return [Vertices, Edges];
+      }
+
+      // ------------------------------------------------------------------------------------------------
+      // Funzione init
+      // ------------------------------------------------------------------------------------------------
+
+      async function init() {
+        window.fps = 25; //Frame al secondo delle animazioni
+        window.AnimStart = false; //Stato animazioni default
+
+        window.image = await GetImage("files/bunny.png");
+
+        window.blueb = await GetImage("files/carrot.png");
+        window.salad = await GetImage("files/salad.png");
+
+        window.huut = await GetImage("files/hut.png");
+
+        window.blockim = await GetImage("files/Police.png");
+
+        window.blockim_Transp = await GetImage("files/Police_transp.png");
+
+        /* Passaggi per la gestione animazioni */
+        window.Now;
+        window.Then = Date.now();
+        window.Interval = 1000 / fps;
+
+        document
+          .getElementById("Canvas")
+          .addEventListener("mousedown", ev_mousedown, false);
+        document
+          .getElementById("Canvas")
+          .addEventListener("mouseup", ev_mouseup, false);
+        document
+          .getElementById("Canvas")
+          .addEventListener("mousemove", ev_mousemove, false);
+        document
+          .getElementById("Canvas")
+          .addEventListener("touchstart", ev_mousedown, false);
+        document
+          .getElementById("Canvas")
+          .addEventListener("touchend", ev_mouseup, false);
+        document
+          .getElementById("Canvas")
+          .addEventListener("touchmove", ev_mousemove, false);
+
+        w = document.getElementById("DivCanvas").clientWidth;
+        h = document.getElementById("DivCanvas").clientHeight;
+
+        document.getElementById("Canvas").width = w;
+        document.getElementById("Canvas").height = h;
+
+        window.ctx = document.getElementById("Canvas").getContext("2d");
+        window.fps = 25; //Frame al secondo delle animazioni
+        window.Interval = 1000 / fps;
+        window.AnimStart = false; //Stato animazioni default
+
+        ctx.lineWidth = 1;
+        ctx.fillStyle = "rgb(0,0,0)";
+
+        /* Passaggi per la gestione animazioni */
+        window.Now;
+        window.Then = Date.now();
+
+        audioEl = new Audio("./files/Sheep.mp3");
+
+        // Queste mi servono per controllare i click nel canvas
+        mousex = 0;
+        mousey = 0;
+        mousexo = 0;
+        mouseyo = 0;
+
+        // Parametri vari
+        Soglia0 = 0.001;
+        SogliaClick = 50;
+
+        // Questo controlla se l'animazione è attiva o meno.
+        AnimON = false;
+
+        // Raggio del punto
+        r = 4;
+
+        L = 80;
+
+        PresoPt = -1;
+
+        NumeroRighe = gup("r", document.location.search) || 6;
+        NumeroColonne = gup("c", document.location.search) || 8;
+        NumeroSuddivisioni =
+          gup("c", document.location.search) ||
+          Math.floor(
+            (2 * NumeroRighe * NumeroColonne - NumeroRighe - NumeroColonne) / 2
+          );
+        MaxBushes = gup("b", document.location.search) || 3;
+        NumRocks = gup("o", document.location.search) || 8;
+
+        InitializeGraph(
+          GenerateGraph(NumeroColonne, NumeroRighe, NumeroSuddivisioni)
+        );
+      }
+
+      function gup(name, url) {
+        if (!url) url = location.href;
+        name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+        var regexS = "[\\?&]" + name + "=([^&#]*)";
+        var regex = new RegExp(regexS);
+        var results = regex.exec(url);
+        return results == null ? null : results[1];
+      }
+
+      function AggiornaVariabili() {
+        // Movimento blocchi
+        for (var i = 0; i < Blocchi.length; i++) {
+          if (Blocchi[i].stato == 2) {
+            var dist_temp = Blocchi[i].pos.Dist(Blocchi[i].riposo);
+            if (dist_temp < 10 + 1) {
+              Blocchi[i].pos.x = Blocchi[i].riposo.x;
+              Blocchi[i].pos.y = Blocchi[i].riposo.y;
+              Blocchi[i].stato = 0;
+            } else {
+              Blocchi[i].pos.x =
+                Blocchi[i].pos.x +
+                (1 * (Blocchi[i].riposo.x - Blocchi[i].pos.x)) /
+                  Math.sqrt(dist_temp);
+              Blocchi[i].pos.y =
+                Blocchi[i].pos.y +
+                (1 * (Blocchi[i].riposo.y - Blocchi[i].pos.y)) /
+                  Math.sqrt(dist_temp);
+            }
+          }
+        }
+
+        // Movimento pecorelle
+        for (var i = 0; i < Pecorelle.length; i++) {
+          if (Pecorelle[i].delay > 0) {
+            Pecorelle[i].delay = Math.max(0, Pecorelle[i].delay - 10);
+          } else {
+            if (
+              Pecorelle[i].stato == 1 &&
+              Pecorelle[i].orig != Pecorelle[i].dest
+            ) {
+              Pecorelle[i].t = Math.min(
+                Pecorelle[i].t +
+                  (L * Pecorelle[i].v) /
+                    G.weightMat[Pecorelle[i].orig][Pecorelle[i].dest],
+                1
+              );
+              if (Pecorelle[i].t == 1) {
+                Pecorelle[i].stato = 2;
+              }
+            }
+
+            // Comportamento pecorelle in attesa
+            if (Pecorelle[i].stato == 2) {
+              // La pecorella ha trovato un cespuglio di bacche.
+              if (G.Vertices[Pecorelle[i].dest].type == 1) {
+                //console.log("BACCHE - Orig: " + Pecorelle[i].orig + " Dest: " + Pecorelle[i].dest + " Stato: " + Pecorelle[i].stato + " t: " + Pecorelle[i].t);
+                Pecorelle[i].stato = 0;
+                PecoreFerme++;
+                AggiornaTesti();
+                //console.log("Pecorella "+i+" bloccata a mangiare le bacche (velenose e mortali)");
+              }
+              // La pecorella ha raggiunto una fattoria.
+              if (G.Vertices[Pecorelle[i].dest].type == 2) {
+                //console.log("FATTORIA - Orig: " + Pecorelle[i].orig + " Dest: " + Pecorelle[i].dest + " Stato: " + Pecorelle[i].stato + " t: " + Pecorelle[i].t);
+                Pecorelle[i].stato = 0;
+                PecoreSalve++;
+                AggiornaTesti();
+                //console.log("Pecorella "+i+" arrivata alla fattoria!");
+              }
+
+              // La pecorella procede con un nuovo sentiero (o quello vecchio se e' in un vicolo cieco)
+              if (
+                G.Vertices[Pecorelle[i].dest].type == 0 ||
+                G.Vertices[Pecorelle[i].dest].type == 3
+              ) {
+                // Mi scrivo quali sono i vertici adiacenti alla destinazione, escludendo quello da cui vengo.
+                DestPoss = [];
+
+                if (G.Vertices[Pecorelle[i].dest].type == 0) {
+                  for (var j = 0; j < G.Vertices.length; j++) {
+                    if (
+                      Pecorelle[i].orig != j &&
+                      G.adjMat[Pecorelle[i].dest][j] == 1
+                    ) {
+                      DestPoss.push(j);
+                    }
+                  }
+                  /*
 						console.log("Pecorella " +i+ " BIVIO  - orig: " + Pecorelle[i].orig +
 								" dest: " + Pecorelle[i].dest +
 								" t: " + Pecorelle[i].t + ". Strade disponibili: ["+ DestPoss + "] in totale "+DestPoss.length);
 						*/
-					}
-					else {
-						/*
+                } else {
+                  /*
 						console.log("Pecorella " +i+ " BLOCCO - orig: " + Pecorelle[i].orig +
 								" dest: " + Pecorelle[i].dest +
 								" t: " + Pecorelle[i].t + ". Strade disponibili: ["+ DestPoss + "] in totale "+DestPoss.length);
 						*/
-					}
-					
-					// Se ho incontrato un vicolo cieco torno indietro
-					// Se non ho incontrato un vicolo cieco scelgo una strada possibile a caso
-					if (DestPoss.length==0) {
-						//console.log("Pecorella "+i+ " Vicolo cieco o blocco");
-					
-						var dest_old=Pecorelle[i].dest;
-						Pecorelle[i].dest=Pecorelle[i].orig;
-						Pecorelle[i].orig=dest_old;
-					}
-					else {
-						Pecorelle[i].orig=Pecorelle[i].dest;
-						Pecorelle[i].dest=DestPoss[RandInt(0,DestPoss.length-1)];
-					}
-					Pecorelle[i].t=0;
-					Pecorelle[i].stato=1;				
-				}
-			}
-		}
-	}
-}
+                }
 
-function Animazione() {
-	AggiornaVariabili();
+                // Se ho incontrato un vicolo cieco torno indietro
+                // Se non ho incontrato un vicolo cieco scelgo una strada possibile a caso
+                if (DestPoss.length == 0) {
+                  //console.log("Pecorella "+i+ " Vicolo cieco o blocco");
 
-	Disegna();
-}
+                  var dest_old = Pecorelle[i].dest;
+                  Pecorelle[i].dest = Pecorelle[i].orig;
+                  Pecorelle[i].orig = dest_old;
+                } else {
+                  Pecorelle[i].orig = Pecorelle[i].dest;
+                  Pecorelle[i].dest = DestPoss[RandInt(0, DestPoss.length - 1)];
+                }
+                Pecorelle[i].t = 0;
+                Pecorelle[i].stato = 1;
+              }
+            }
+          }
+        }
+      }
 
+      function Animazione() {
+        AggiornaVariabili();
 
-// ------------------------------------------------------------------------------------------------
-// Mouse Handler Events
-// ------------------------------------------------------------------------------------------------
+        Disegna();
+      }
 
-function ev_mousemove (ev) {
-	// Get the mouse position relative to the canvas element.
-	ev.preventDefault();
-	if (ev.changedTouches != null) {
-		touchobject = ev.changedTouches[0];
-		mousex = touchobject.clientX - this.offsetLeft;
-		mousey = touchobject.clientY - this.offsetTop;
-	} else {
-		mousex = ev.clientX - this.offsetLeft;
-		mousey = ev.clientY - this.offsetTop;
-	}
+      // ------------------------------------------------------------------------------------------------
+      // Mouse Handler Events
+      // ------------------------------------------------------------------------------------------------
 
-	
-	/*
+      function ev_mousemove(ev) {
+        // Get the mouse position relative to the canvas element.
+        ev.preventDefault();
+        if (ev.changedTouches != null) {
+          touchobject = ev.changedTouches[0];
+          mousex = touchobject.clientX - this.offsetLeft;
+          mousey = touchobject.clientY - this.offsetTop;
+        } else {
+          mousex = ev.clientX - this.offsetLeft;
+          mousey = ev.clientY - this.offsetTop;
+        }
+
+        /*
 	// Permette di muovere i vertici del grafo
 	if (PresoPt>-1) {
 		G.Vertices[PresoPt].pos.x=mousex;
@@ -567,117 +574,121 @@ function ev_mousemove (ev) {
 		Disegna();
 	}
 	*/
-	
-	// Se ho selezionato un blocco, lo muove.
-	if (PresoBl>-1) {
-		Blocchi[PresoBl].pos.x=mousex;
-		Blocchi[PresoBl].pos.y=mousey;
-		Disegna();
-	}
-	
-	
-}
 
-function ev_mousedown (ev) {
-	// Get the mouse position relative to the canvas element.
-	ev.preventDefault();
-	if (ev.changedTouches != null) {
-		touchobject = ev.changedTouches[0];
-		mousex = touchobject.clientX - this.offsetLeft;
-		mousey = touchobject.clientY - this.offsetTop;
-	} else {
-		mousex = ev.clientX - this.offsetLeft;
-		mousey = ev.clientY - this.offsetTop;
-	}
-	// Testo per vedere se ho cercato di prendere un blocco.
-	for(var i=0; i<Blocchi.length;i++) {
-		if ((mousex-Blocchi[i].pos.x)*(mousex-Blocchi[i].pos.x)+
-			(mousey-Blocchi[i].pos.y)*(mousey-Blocchi[i].pos.y)<SogliaClick*SogliaClick+1) {
-			PresoBl=i;
-			Blocchi[i].stato=0;
-			console.log("Preso blocco " + i);
-			break;
-		}
-	}
+        // Se ho selezionato un blocco, lo muove.
+        if (PresoBl > -1) {
+          Blocchi[PresoBl].pos.x = mousex;
+          Blocchi[PresoBl].pos.y = mousey;
+          Disegna();
+        }
+      }
 
-	if ((mousex-StartX)*(mousex-StartX)+(mousey-StartY+150)*(mousey-StartY+150)<50*50) {
-		StartStop();
-	}
-	
-	if (AnimStart && (mousex-FastForwardX)*(mousex-FastForwardX)+(mousey-FastForwardY+150)*(mousey-FastForwardY+150)<50*50) {
-		FF();
-	}
-			
-	
-	
-}
+      function ev_mousedown(ev) {
+        // Get the mouse position relative to the canvas element.
+        ev.preventDefault();
+        if (ev.changedTouches != null) {
+          touchobject = ev.changedTouches[0];
+          mousex = touchobject.clientX - this.offsetLeft;
+          mousey = touchobject.clientY - this.offsetTop;
+        } else {
+          mousex = ev.clientX - this.offsetLeft;
+          mousey = ev.clientY - this.offsetTop;
+        }
+        // Testo per vedere se ho cercato di prendere un blocco.
+        for (var i = 0; i < Blocchi.length; i++) {
+          if (
+            (mousex - Blocchi[i].pos.x) * (mousex - Blocchi[i].pos.x) +
+              (mousey - Blocchi[i].pos.y) * (mousey - Blocchi[i].pos.y) <
+            SogliaClick * SogliaClick + 1
+          ) {
+            PresoBl = i;
+            Blocchi[i].stato = 0;
+            console.log("Preso blocco " + i);
+            break;
+          }
+        }
 
-Lento=1;
-function FF() {
-	if (Lento==1) {
-		CambiaSpeed(1/15);
-		Lento=0;
-	} else {
-		CambiaSpeed(1/50);
-		Lento=1;
-	}
+        if (
+          (mousex - StartX) * (mousex - StartX) +
+            (mousey - StartY + 150) * (mousey - StartY + 150) <
+          50 * 50
+        ) {
+          StartStop();
+        }
 
-}
+        if (
+          AnimStart &&
+          (mousex - FastForwardX) * (mousex - FastForwardX) +
+            (mousey - FastForwardY + 150) * (mousey - FastForwardY + 150) <
+            50 * 50
+        ) {
+          FF();
+        }
+      }
 
+      Lento = 1;
+      function FF() {
+        if (Lento == 1) {
+          CambiaSpeed(1 / 15);
+          Lento = 0;
+        } else {
+          CambiaSpeed(1 / 50);
+          Lento = 1;
+        }
+      }
 
-function CambiaSpeed(S) {
-	for (var i=0;i<Pecorelle.length;i++) {
-		Pecorelle[i].v=S
-	
-	}
+      function CambiaSpeed(S) {
+        for (var i = 0; i < Pecorelle.length; i++) {
+          Pecorelle[i].v = S;
+        }
+      }
 
-}
+      function ev_mouseup(ev) {
+        if (PresoBl > -1) {
+          var VertSel = -1;
+          for (var i = 0; i < G.Vertices.length; i++) {
+            if (
+              (mousex - G.Vertices[i].pos.x) * (mousex - G.Vertices[i].pos.x) +
+                (mousey - G.Vertices[i].pos.y) *
+                  (mousey - G.Vertices[i].pos.y) <
+              SogliaClick * SogliaClick + 1
+            ) {
+              VertSel = i;
+              console.log("Blocco mollato sul vertice " + i);
+              break;
+            }
+          }
+          if (VertSel > -1) {
+            // Sto per mollare un blocco in un vertice del labirinto
 
-function ev_mouseup (ev) {
+            Blocchi[PresoBl].pos.x = G.Vertices[VertSel].pos.x;
+            Blocchi[PresoBl].pos.y = G.Vertices[VertSel].pos.y;
 
-	if (PresoBl>-1) {
-		var VertSel=-1;
-		for(var i=0; i<G.Vertices.length;i++) {
-			if ((mousex-G.Vertices[i].pos.x)*(mousex-G.Vertices[i].pos.x)+
-				(mousey-G.Vertices[i].pos.y)*(mousey-G.Vertices[i].pos.y)<SogliaClick*SogliaClick+1) {
-				VertSel=i;
-				console.log("Blocco mollato sul vertice " + i);
-				break;
-			}
-		}
-		if (VertSel>-1) {
-			// Sto per mollare un blocco in un vertice del labirinto
-			
-			Blocchi[PresoBl].pos.x=G.Vertices[VertSel].pos.x;
-			Blocchi[PresoBl].pos.y=G.Vertices[VertSel].pos.y;
-		
-			// Se il blocco era in un altro punto del labirinto, tolgo il vecchio blocco
-			if (Blocchi[PresoBl].vert>-1) {
-				G.Vertices[Blocchi[PresoBl].vert].type=0;
-			}
+            // Se il blocco era in un altro punto del labirinto, tolgo il vecchio blocco
+            if (Blocchi[PresoBl].vert > -1) {
+              G.Vertices[Blocchi[PresoBl].vert].type = 0;
+            }
 
-			Blocchi[PresoBl].stato=1; // Posizionato nel labirinto
-			Blocchi[PresoBl].vert=VertSel;
-			G.Vertices[VertSel].type=3;
-		}
-		else {		
-			if (Blocchi[PresoBl].vert>-1) {
-				G.Vertices[Blocchi[PresoBl].vert].type=0;
-			}
+            Blocchi[PresoBl].stato = 1; // Posizionato nel labirinto
+            Blocchi[PresoBl].vert = VertSel;
+            G.Vertices[VertSel].type = 3;
+          } else {
+            if (Blocchi[PresoBl].vert > -1) {
+              G.Vertices[Blocchi[PresoBl].vert].type = 0;
+            }
 
-			Blocchi[PresoBl].vert=-1;
-			Blocchi[PresoBl].stato=2; // Deve tornare a riposo
-		}
-	}
+            Blocchi[PresoBl].vert = -1;
+            Blocchi[PresoBl].stato = 2; // Deve tornare a riposo
+          }
+        }
 
-	PresoPt=-1;
-	PresoBl=-1;
-	
-	Disegna();
+        PresoPt = -1;
+        PresoBl = -1;
 
-}
+        Disegna();
+      }
 
-/* // Inutilizzato
+      /* // Inutilizzato
 function ev_mousewheel (ev) {
 	var e = window.event || e; // old IE support	
 	
@@ -689,320 +700,340 @@ function ev_mousewheel (ev) {
 	}
 }*/
 
-// ------------------------------------------------------------------------------------------------
-// Funzione che disegna tutto
-// ------------------------------------------------------------------------------------------------
-function drawRotated(image, context, angle, left, top, width, height) {
-    context.save();
-    context.translate(left + width / 2, top + height / 2);
-    context.rotate(Math.PI / 180 * angle);
-    context.drawImage(image, - width / 2, - height / 2, width, height);
-    context.restore();
-}
+      // ------------------------------------------------------------------------------------------------
+      // Funzione che disegna tutto
+      // ------------------------------------------------------------------------------------------------
+      function drawRotated(image, context, angle, left, top, width, height) {
+        context.save();
+        context.translate(left + width / 2, top + height / 2);
+        context.rotate((Math.PI / 180) * angle);
+        context.drawImage(image, -width / 2, -height / 2, width, height);
+        context.restore();
+      }
 
-function CalcolaAngolo(A,B) {
-	let DiffX=A.pos.x-B.pos.x;
-	let DiffY=A.pos.y-B.pos.y;
-	return Math.atan2(DiffY,DiffX)*180/Math.PI;
+      function CalcolaAngolo(A, B) {
+        let DiffX = A.pos.x - B.pos.x;
+        let DiffY = A.pos.y - B.pos.y;
+        return (Math.atan2(DiffY, DiffX) * 180) / Math.PI;
+      }
 
-}
+      function DrawGauge(ctx, C, R, N, Max) {
+        // Save the current context state
+        ctx.save();
 
-function DrawGauge(ctx, C, R, N, Max) {
-  // Save the current context state
-  ctx.save();
+        // Draw the background circle
+        ctx.beginPath();
+        ctx.arc(C.x, C.y, R, Math.PI, 2 * Math.PI);
+        ctx.fillStyle = "#f0f0f0";
+        ctx.fill();
+        ctx.strokeStyle = "#ccc";
+        ctx.lineWidth = 4;
+        ctx.stroke();
 
-  // Draw the background circle
-  ctx.beginPath();
-  ctx.arc(C.x, C.y, R, Math.PI, 2 * Math.PI);
-  ctx.fillStyle = '#f0f0f0';
-  ctx.fill();
-  ctx.strokeStyle = '#ccc';
-  ctx.lineWidth = 4;
-  ctx.stroke();
+        // Calculate the current angle based on the current value
+        var angle = (N / Max) * Math.PI;
 
-  // Calculate the current angle based on the current value
-  var angle = (N / Max) * Math.PI;
+        // Calculate the gradient colors based on N
+        var gradient = ctx.createLinearGradient(C.x, C.y - R, C.x, C.y);
+        gradient.addColorStop(0, "darkgreen");
+        gradient.addColorStop(1, "lightgreen");
 
-  // Calculate the gradient colors based on N
-  var gradient = ctx.createLinearGradient(C.x, C.y - R, C.x, C.y);
-  gradient.addColorStop(0, 'darkgreen');
-  gradient.addColorStop(1, 'lightgreen');
+        // Draw the gauge arc
+        ctx.beginPath();
+        ctx.arc(C.x, C.y, R, Math.PI, Math.PI + angle);
+        ctx.lineTo(C.x, C.y);
+        ctx.closePath();
+        ctx.fillStyle = gradient;
+        ctx.shadowColor = gradient;
+        ctx.shadowBlur = 10;
+        ctx.fill();
 
-  // Draw the gauge arc
-  ctx.beginPath();
-  ctx.arc(C.x, C.y, R, Math.PI, Math.PI + angle);
-  ctx.lineTo(C.x, C.y);
-  ctx.closePath();
-  ctx.fillStyle = gradient;
-  ctx.shadowColor = gradient;
-  ctx.shadowBlur = 10;
-  ctx.fill();
+        // Calculate the coordinates of the indicator hand
+        var handLength = R * 0.8; // Length of the indicator hand as a fraction of the radius
+        var handX = C.x + Math.cos(Math.PI + angle) * handLength;
+        var handY = C.y + Math.sin(Math.PI + angle) * handLength;
 
-  // Calculate the coordinates of the indicator hand
-  var handLength = R * 0.8; // Length of the indicator hand as a fraction of the radius
-  var handX = C.x + Math.cos(Math.PI + angle) * handLength;
-  var handY = C.y + Math.sin(Math.PI + angle) * handLength;
+        // Draw the indicator hand
+        ctx.beginPath();
+        ctx.moveTo(C.x, C.y);
+        ctx.lineTo(
+          C.x + Math.cos(Math.PI + angle) * (R - 10),
+          C.y + Math.sin(Math.PI + angle) * (R - 10)
+        );
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = "#fff";
+        ctx.shadowColor = "#000";
+        ctx.shadowBlur = 5;
+        ctx.stroke();
 
-  // Draw the indicator hand
-  ctx.beginPath();
-  ctx.moveTo(C.x, C.y);
-  ctx.lineTo(C.x + Math.cos(Math.PI + angle) * (R - 10), C.y + Math.sin(Math.PI + angle) * (R - 10));
-  ctx.lineWidth = 4;
-  ctx.strokeStyle = '#fff';
-  ctx.shadowColor = '#000';
-  ctx.shadowBlur = 5;
-  ctx.stroke();
+        // Draw the indicator circle
+        ctx.beginPath();
+        ctx.arc(C.x, C.y, 8, 0, Math.PI * 2);
+        ctx.fillStyle = "#fff";
+        ctx.shadowColor = "#000";
+        ctx.shadowBlur = 10;
+        ctx.fill();
 
-  // Draw the indicator circle
-  ctx.beginPath();
-  ctx.arc(C.x, C.y, 8, 0, Math.PI * 2);
-  ctx.fillStyle = '#fff';
-  ctx.shadowColor = '#000';
-  ctx.shadowBlur = 10;
-  ctx.fill();
+        // Restore the saved context state
+        ctx.restore();
+      }
 
-  // Restore the saved context state
-  ctx.restore();
-}
+      function drawStart(ctx, C, R) {
+        // Draw the green circle
+        ctx.beginPath();
+        ctx.arc(C.x, C.y, R, 0, 2 * Math.PI);
+        ctx.fillStyle = "green";
+        ctx.fill();
+        ctx.closePath();
 
+        // Calculate the triangle coordinates
+        const triangleSize = R / 2;
+        const triangleHeight = (Math.sqrt(3) / 2) * triangleSize;
 
+        const triangleRight = C.x + triangleHeight / 2;
+        const triangleUp = C.y - triangleSize / 2;
+        const triangleDown = C.y + triangleSize / 2;
+        const triangleLeft = C.x - triangleHeight / 2;
+        const transleft = R / 16;
 
-function drawStart(ctx, C, R) {
- // Draw the green circle
-  ctx.beginPath();
-  ctx.arc(C.x, C.y, R, 0, 2 * Math.PI);
-  ctx.fillStyle = 'green';
-  ctx.fill();
-  ctx.closePath();
+        // Draw the triangle
+        ctx.beginPath();
+        ctx.moveTo(triangleRight + transleft, C.y);
+        ctx.lineTo(triangleLeft + transleft, triangleUp);
+        ctx.lineTo(triangleLeft + transleft, triangleDown);
+        ctx.closePath();
 
-  // Calculate the triangle coordinates
-  const triangleSize = R / 2;
-  const triangleHeight = (Math.sqrt(3) / 2) * triangleSize;
-  
-  const triangleRight = C.x + triangleHeight / 2;
-  const triangleUp = C.y - triangleSize / 2;
-  const triangleDown = C.y + triangleSize / 2;
-  const triangleLeft = C.x - triangleHeight / 2;
-  const transleft=R/16;
-  
-  // Draw the triangle
-  ctx.beginPath();  
-  ctx.moveTo(triangleRight+transleft, C.y);
-  ctx.lineTo(triangleLeft+transleft, triangleUp);
-  ctx.lineTo(triangleLeft+transleft, triangleDown);
-  ctx.closePath();
+        // Set the triangle color to white
+        ctx.fillStyle = "white";
+        ctx.fill();
+      }
 
-  // Set the triangle color to white
-  ctx.fillStyle = 'white';
-  ctx.fill();
-}
+      function drawFastForward(ctx, C, R, Col) {
+        // Draw the green circle
+        ctx.beginPath();
+        ctx.arc(C.x, C.y, R, 0, 2 * Math.PI);
+        ctx.fillStyle = Col;
+        ctx.fill();
+        ctx.closePath();
 
+        // Calculate the triangle coordinates
+        const triangleSize = R / 2;
+        const triangleHeight = (Math.sqrt(3) / 2) * triangleSize;
 
-function drawFastForward(ctx, C, R,Col) {
- // Draw the green circle
-  ctx.beginPath();
-  ctx.arc(C.x, C.y, R, 0, 2 * Math.PI);
-  ctx.fillStyle = Col;
-  ctx.fill();
-  ctx.closePath();
+        const triangleRight = C.x + triangleHeight / 2;
+        const triangleUp = C.y - triangleSize / 2;
+        const triangleDown = C.y + triangleSize / 2;
+        const triangleLeft = C.x - triangleHeight / 2;
+        const transleft = R / 16;
 
-  // Calculate the triangle coordinates
-  const triangleSize = R / 2;
-  const triangleHeight = (Math.sqrt(3) / 2) * triangleSize;
-  
-  const triangleRight = C.x + triangleHeight / 2;
-  const triangleUp = C.y - triangleSize / 2;
-  const triangleDown = C.y + triangleSize / 2;
-  const triangleLeft = C.x - triangleHeight / 2;
-  const transleft=R/16;
-  
-  // Draw the triangle
-  ctx.beginPath();  
-  ctx.moveTo(triangleRight-1*transleft, C.y);
-  ctx.lineTo(triangleLeft-1*transleft, triangleUp);
-  ctx.lineTo(triangleLeft-1*transleft, triangleDown);
-  ctx.closePath();
+        // Draw the triangle
+        ctx.beginPath();
+        ctx.moveTo(triangleRight - 1 * transleft, C.y);
+        ctx.lineTo(triangleLeft - 1 * transleft, triangleUp);
+        ctx.lineTo(triangleLeft - 1 * transleft, triangleDown);
+        ctx.closePath();
 
-  // Set the triangle color to white
-  ctx.fillStyle = 'white';
-  ctx.fill();
-  
-  // Draw the triangle
-  ctx.beginPath();  
-  ctx.moveTo(triangleRight+3*transleft, C.y);
-  ctx.lineTo(triangleLeft+3*transleft, triangleUp);
-  ctx.lineTo(triangleLeft+3*transleft, triangleDown);
-  ctx.closePath();
+        // Set the triangle color to white
+        ctx.fillStyle = "white";
+        ctx.fill();
 
-  // Set the triangle color to white
-  ctx.fillStyle = 'white';
-  ctx.fill();
-}
+        // Draw the triangle
+        ctx.beginPath();
+        ctx.moveTo(triangleRight + 3 * transleft, C.y);
+        ctx.lineTo(triangleLeft + 3 * transleft, triangleUp);
+        ctx.lineTo(triangleLeft + 3 * transleft, triangleDown);
+        ctx.closePath();
 
-function drawStop(ctx, C, R) {
- // Draw the green circle
-  ctx.beginPath();
-  ctx.arc(C.x, C.y, R, 0, 2 * Math.PI);
-  ctx.fillStyle = '#bb0000';
-  ctx.fill();
-  ctx.closePath();
+        // Set the triangle color to white
+        ctx.fillStyle = "white";
+        ctx.fill();
+      }
 
-  // Calculate the triangle coordinates
-  const SquareSize = R / 2;
-  
-  // Draw the square
-  ctx.beginPath();  
-  ctx.moveTo(C.x-SquareSize/2, C.y-SquareSize/2);
-  ctx.lineTo(C.x+SquareSize/2, C.y-SquareSize/2);
-  ctx.lineTo(C.x+SquareSize/2, C.y+SquareSize/2);
-  ctx.lineTo(C.x-SquareSize/2, C.y+SquareSize/2);
-  ctx.closePath();
+      function drawStop(ctx, C, R) {
+        // Draw the green circle
+        ctx.beginPath();
+        ctx.arc(C.x, C.y, R, 0, 2 * Math.PI);
+        ctx.fillStyle = "#bb0000";
+        ctx.fill();
+        ctx.closePath();
 
-  // Set the triangle color to white
-  ctx.fillStyle = 'white';
-  ctx.fill();
-}
+        // Calculate the triangle coordinates
+        const SquareSize = R / 2;
 
-function drawPause(ctx, C, R) {
- // Draw the green circle
-  ctx.beginPath();
-  ctx.arc(C.x, C.y, R, 0, 2 * Math.PI);
-  ctx.fillStyle = '#FFA500';
-  ctx.fill();
-  ctx.closePath();
+        // Draw the square
+        ctx.beginPath();
+        ctx.moveTo(C.x - SquareSize / 2, C.y - SquareSize / 2);
+        ctx.lineTo(C.x + SquareSize / 2, C.y - SquareSize / 2);
+        ctx.lineTo(C.x + SquareSize / 2, C.y + SquareSize / 2);
+        ctx.lineTo(C.x - SquareSize / 2, C.y + SquareSize / 2);
+        ctx.closePath();
 
-  // Calculate the triangle coordinates
-  const SquareSize = R / 2;
-  
-  // Draw the square
-  ctx.beginPath();  
-  ctx.moveTo(C.x-SquareSize/5-SquareSize/3, C.y-SquareSize/2);
-  ctx.lineTo(C.x+SquareSize/5-SquareSize/3, C.y-SquareSize/2);
-  ctx.lineTo(C.x+SquareSize/5-SquareSize/3, C.y+SquareSize/2);
-  ctx.lineTo(C.x-SquareSize/5-SquareSize/3, C.y+SquareSize/2);
-  ctx.closePath();
-  
-    // Set the triangle color to white
-  ctx.fillStyle = 'white';
-  ctx.fill();
-  
-  ctx.beginPath();  
-  ctx.moveTo(C.x-SquareSize/5+SquareSize/3, C.y-SquareSize/2);
-  ctx.lineTo(C.x+SquareSize/5+SquareSize/3, C.y-SquareSize/2);
-  ctx.lineTo(C.x+SquareSize/5+SquareSize/3, C.y+SquareSize/2);
-  ctx.lineTo(C.x-SquareSize/5+SquareSize/3, C.y+SquareSize/2);
-  ctx.closePath();
+        // Set the triangle color to white
+        ctx.fillStyle = "white";
+        ctx.fill();
+      }
 
-  // Set the triangle color to white
-  ctx.fillStyle = 'white';
-  ctx.fill();
-}
+      function drawPause(ctx, C, R) {
+        // Draw the green circle
+        ctx.beginPath();
+        ctx.arc(C.x, C.y, R, 0, 2 * Math.PI);
+        ctx.fillStyle = "#FFA500";
+        ctx.fill();
+        ctx.closePath();
 
+        // Calculate the triangle coordinates
+        const SquareSize = R / 2;
 
-function drawReload(ctx, C, R) {
-  // Draw the green circle
-  ctx.beginPath();
-  ctx.arc(C.x, C.y, R, 0, 2 * Math.PI);
-  ctx.fillStyle = 'green';
-  ctx.fill();
-  ctx.closePath();
+        // Draw the square
+        ctx.beginPath();
+        ctx.moveTo(C.x - SquareSize / 5 - SquareSize / 3, C.y - SquareSize / 2);
+        ctx.lineTo(C.x + SquareSize / 5 - SquareSize / 3, C.y - SquareSize / 2);
+        ctx.lineTo(C.x + SquareSize / 5 - SquareSize / 3, C.y + SquareSize / 2);
+        ctx.lineTo(C.x - SquareSize / 5 - SquareSize / 3, C.y + SquareSize / 2);
+        ctx.closePath();
 
-  // Draw the arrow
-  const arrowSize = R / 2;
-  const arrowTailSize = arrowSize / 4;
-  const arrowTailHeight = arrowSize / 2;
-  
-  const arrowTailX = C.x - arrowSize / 2;
-  const arrowTailY = C.y - arrowTailHeight / 2;
-  
-  const arrowHeadX = C.x + arrowSize / 2;
-  const arrowHeadY = C.y;
-  
-  ctx.beginPath();
-  ctx.moveTo(arrowTailX, arrowTailY);
-  ctx.lineTo(arrowTailX, arrowTailY + arrowTailHeight);
-  ctx.lineTo(arrowHeadX, arrowHeadY);
-  ctx.closePath();
+        // Set the triangle color to white
+        ctx.fillStyle = "white";
+        ctx.fill();
 
-  // Set the arrow color to white
-  ctx.fillStyle = 'white';
-  ctx.fill();
-}
+        ctx.beginPath();
+        ctx.moveTo(C.x - SquareSize / 5 + SquareSize / 3, C.y - SquareSize / 2);
+        ctx.lineTo(C.x + SquareSize / 5 + SquareSize / 3, C.y - SquareSize / 2);
+        ctx.lineTo(C.x + SquareSize / 5 + SquareSize / 3, C.y + SquareSize / 2);
+        ctx.lineTo(C.x - SquareSize / 5 + SquareSize / 3, C.y + SquareSize / 2);
+        ctx.closePath();
 
+        // Set the triangle color to white
+        ctx.fillStyle = "white";
+        ctx.fill();
+      }
 
+      function drawReload(ctx, C, R) {
+        // Draw the green circle
+        ctx.beginPath();
+        ctx.arc(C.x, C.y, R, 0, 2 * Math.PI);
+        ctx.fillStyle = "green";
+        ctx.fill();
+        ctx.closePath();
 
+        // Draw the arrow
+        const arrowSize = R / 2;
+        const arrowTailSize = arrowSize / 4;
+        const arrowTailHeight = arrowSize / 2;
 
+        const arrowTailX = C.x - arrowSize / 2;
+        const arrowTailY = C.y - arrowTailHeight / 2;
 
-function Disegna() {	
-	G.PlotGraph(ctx,blueb,salad,huut,blockim_Transp);	
+        const arrowHeadX = C.x + arrowSize / 2;
+        const arrowHeadY = C.y;
 
-	ctx.fillStyle="rgb(255,0,0)";
-	for (var i=0;i<Pecorelle.length;i++) {
-		let Ang=CalcolaAngolo(G.Vertices[Pecorelle[i].orig],G.Vertices[Pecorelle[i].dest]);
+        ctx.beginPath();
+        ctx.moveTo(arrowTailX, arrowTailY);
+        ctx.lineTo(arrowTailX, arrowTailY + arrowTailHeight);
+        ctx.lineTo(arrowHeadX, arrowHeadY);
+        ctx.closePath();
 
-		let Sinistra=(G.Vertices[Pecorelle[i].orig].pos.x)*(1-Pecorelle[i].t)+(G.Vertices[Pecorelle[i].dest].pos.x)*Pecorelle[i].t;
-		let Alto=(G.Vertices[Pecorelle[i].orig].pos.y)*(1-Pecorelle[i].t)+(G.Vertices[Pecorelle[i].dest].pos.y)*Pecorelle[i].t
-		drawRotated(image, ctx, Ang, Sinistra-25, Alto-25, 50, 50);
-	}
-	
-	for (var i=0;i<Blocchi.length;i++) {
-		drawRotated(blockim, ctx, 0, Blocchi[i].pos.x-30, Blocchi[i].pos.y-30, 60, 60);
-	}
-	
-	
-	DrawGauge(ctx, { x: FarmX, y: FarmY-100 }, 100, PecoreSalve, 10);
-	if (AnimStart)	drawPause(ctx, {x:StartX, y:StartY-150}, 50)
-	else drawStart(ctx, {x:StartX, y:StartY-150}, 50)
-	
-	if (AnimStart) {
-	
-	if (Lento) drawFastForward(ctx, {x:FastForwardX, y:FastForwardY-150}, 50,'gray')
-	else drawFastForward(ctx, {x:FastForwardX, y:FastForwardY-150}, 50,'blue')
-	}
-}
+        // Set the arrow color to white
+        ctx.fillStyle = "white";
+        ctx.fill();
+      }
 
-function AggiornaTesti() {
-	return;
-}
+      function Disegna() {
+        G.PlotGraph(ctx, blueb, salad, huut, blockim_Transp);
 
+        ctx.fillStyle = "rgb(255,0,0)";
+        for (var i = 0; i < Pecorelle.length; i++) {
+          let Ang = CalcolaAngolo(
+            G.Vertices[Pecorelle[i].orig],
+            G.Vertices[Pecorelle[i].dest]
+          );
 
-// ------------------------------------------------------------------------------------------------
-// Funzioni che regolano il dialogo tra gli oggetti HTML (slider e affini) e il canvas
-// ------------------------------------------------------------------------------------------------
+          let Sinistra =
+            G.Vertices[Pecorelle[i].orig].pos.x * (1 - Pecorelle[i].t) +
+            G.Vertices[Pecorelle[i].dest].pos.x * Pecorelle[i].t;
+          let Alto =
+            G.Vertices[Pecorelle[i].orig].pos.y * (1 - Pecorelle[i].t) +
+            G.Vertices[Pecorelle[i].dest].pos.y * Pecorelle[i].t;
+          drawRotated(image, ctx, Ang, Sinistra - 25, Alto - 25, 50, 50);
+        }
 
-window.addEventListener("keydown", function(e) {
-    // space and arrow keys
-    if([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1) {
-        e.preventDefault();
-    }
-}, false);
+        for (var i = 0; i < Blocchi.length; i++) {
+          drawRotated(
+            blockim,
+            ctx,
+            0,
+            Blocchi[i].pos.x - 30,
+            Blocchi[i].pos.y - 30,
+            60,
+            60
+          );
+        }
 
-function KeyPressed(event) {
+        DrawGauge(ctx, { x: FarmX, y: FarmY - 100 }, 100, PecoreSalve, 10);
+        if (AnimStart) drawPause(ctx, { x: StartX, y: StartY - 150 }, 50);
+        else drawStart(ctx, { x: StartX, y: StartY - 150 }, 50);
 
-	if (event.keyCode == 83) { // s
-		PartenzaAnimazione();
-	}
+        if (AnimStart) {
+          if (Lento)
+            drawFastForward(
+              ctx,
+              { x: FastForwardX, y: FastForwardY - 150 },
+              50,
+              "gray"
+            );
+          else
+            drawFastForward(
+              ctx,
+              { x: FastForwardX, y: FastForwardY - 150 },
+              50,
+              "blue"
+            );
+        }
+      }
 
-	if (event.keyCode == 65) { // a
+      function AggiornaTesti() {
+        return;
+      }
 
-	}
+      // ------------------------------------------------------------------------------------------------
+      // Funzioni che regolano il dialogo tra gli oggetti HTML (slider e affini) e il canvas
+      // ------------------------------------------------------------------------------------------------
 
-}
+      window.addEventListener(
+        "keydown",
+        function (e) {
+          // space and arrow keys
+          if ([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1) {
+            e.preventDefault();
+          }
+        },
+        false
+      );
 
-</script>
+      function KeyPressed(event) {
+        if (event.keyCode == 83) {
+          // s
+          PartenzaAnimazione();
+        }
 
-</head>
-<body onload='init()' onkeydown="KeyPressed(event);">
+        if (event.keyCode == 65) {
+          // a
+        }
+      }
+    </script>
+  </head>
+  <body onload="init()" onkeydown="KeyPressed(event);">
+    <div id="DivCanvas" style="font: bold 20px Arial">
+      <canvas id="Canvas"></canvas>
+    </div>
 
-<div id="DivCanvas" style="font: bold 20px Arial">
-	<canvas id="Canvas"></canvas> 
-</div>
+    <div id="MenuSinistra" class="ClasseMenuOptions">
+      START/STOP: <button onclick="StartStop();">StartStop</button>
+    </div>
 
-<div id="MenuSinistra" class="ClasseMenuOptions">
-		START/STOP: <button onclick="StartStop();">StartStop </button>
-</div>
+    <script src="../common-js/reloadButton.js"></script>
 
-<!-- <div id="DivJumps" class="ClasseMenuJums">
+    <!-- <div id="DivJumps" class="ClasseMenuJums">
 	<div id="DivJump1" >		
 		<a href="./ESteiner_nV_Evol.html"> <img src="./Img/Link_nVertEvol.png" alt="Link to EST Generale" style="width:200px;"> </a>
 	</div>
@@ -1011,7 +1042,5 @@ function KeyPressed(event) {
 	</div>
 </div>
  -->
-
-
-</body>
+  </body>
 </html>
