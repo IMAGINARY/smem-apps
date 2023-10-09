@@ -16,6 +16,7 @@ apps:
   - apps/birds
   - apps/lilypond
   - apps/rabbitrint
+  - apps/kaleidoskop
 
 # infoApp: apps/cindyjs/info
 langMenuShow: true
