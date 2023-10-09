@@ -17,6 +17,7 @@ apps:
   - apps/lilypond
   - apps/rabbitrint
   - apps/kaleidoskop
+  - apps/barycenter2
 
 # infoApp: apps/cindyjs/info
 langMenuShow: true

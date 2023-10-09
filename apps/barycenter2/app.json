@@ -1,0 +1,21 @@
+{
+  "id": "barycenter2",
+  "version": "1.0.0",
+  "main": "dist/index2.html",
+  "width": 1024,
+  "height": 768,
+  "name": {
+    "en": "Barycenter",
+    "de": "Barycenter",
+    "es": "Barycenter",
+    "ca": "Barycenter",
+    "fr": "Barycenter",
+    "sr": "Barycenter",
+    "el": "Barycenter"
+  },
+  "description": {
+    "en": "",
+    "de": "",
+    "es": ""
+  }
+}
