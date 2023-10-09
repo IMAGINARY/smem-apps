@@ -1,0 +1,29 @@
+lang: en
+
+theme: blue
+
+title:
+  en: SMEM
+  es: SMEM
+  ca: SMEM
+  de: SMEM
+  el: SMEM
+  sr: SMEM
+  fr: SMEM
+logo:
+  en: assets/img/smemlogo-1024x1024.png
+apps:
+  - apps/birds
+  - apps/lilypond
+  - apps/rabbitrint
+
+# infoApp: apps/cindyjs/info
+langMenuShow: true
+langMenuItems:
+  - en
+  - de
+  - es
+  - ca
+  - fr
+  - sr
+  - el

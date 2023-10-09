@@ -1,0 +1,21 @@
+{
+  "id": "singing-birds",
+  "version": "1.0.0",
+  "main": "index.html",
+  "width": 1024,
+  "height": 768,
+  "name": {
+    "en": "Singing birds",
+    "de": "Singing birds",
+    "es": "Singing birds",
+    "ca": "Singing birds",
+    "fr": "Singing birds",
+    "sr": "Singing birds",
+    "el": "Singing birds"
+  },
+  "description": {
+    "en": "",
+    "de": "",
+    "es": ""
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "id": "rabbits-labyrinth",
+  "version": "1.0.0",
+  "main": "index.html",
+  "width": 1024,
+  "height": 768,
+  "name": {
+    "en": "Rabbit's labyrinth",
+    "de": "Rabbit's labyrinth",
+    "es": "Rabbit's labyrinth",
+    "ca": "Rabbit's labyrinth",
+    "fr": "Rabbit's labyrinth",
+    "sr": "Rabbit's labyrinth",
+    "el": "Rabbit's labyrinth"
+  },
+  "description": {
+    "en": "",
+    "de": "",
+    "es": ""
+  }
+}
