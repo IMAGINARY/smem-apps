@@ -1,0 +1,21 @@
+{
+  "id": "fly",
+  "version": "1.0.0",
+  "main": "index.html",
+  "width": 1300,
+  "height": 800,
+  "name": {
+    "en": "Heart in the sky",
+    "de": "Heart in the sky",
+    "es": "Heart in the sky",
+    "ca": "Heart in the sky",
+    "fr": "Heart in the sky",
+    "sr": "Heart in the sky",
+    "el": "Heart in the sky"
+  },
+  "description": {
+    "en": "",
+    "de": "",
+    "es": ""
+  }
+}

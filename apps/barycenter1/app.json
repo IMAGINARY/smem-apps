@@ -1,0 +1,21 @@
+{
+  "id": "barycenter1",
+  "version": "1.0.0",
+  "main": "../barycenter/dist/index.html",
+  "width": 1300,
+  "height": 800,
+  "name": {
+    "en": "Creating umbrellas",
+    "de": "Creating umbrellas",
+    "es": "Creating umbrellas",
+    "ca": "Creating umbrellas",
+    "fr": "Creating umbrellas",
+    "sr": "Creating umbrellas",
+    "el": "Creating umbrellas"
+  },
+  "description": {
+    "en": "",
+    "de": "",
+    "es": ""
+  }
+}

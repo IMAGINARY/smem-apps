@@ -1,7 +1,7 @@
 {
   "id": "barycenter2",
   "version": "1.0.0",
-  "main": "dist/index2.html",
+  "main": "../barycenter/dist/index2.html",
   "width": 1300,
   "height": 800,
   "name": {

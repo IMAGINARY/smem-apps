@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      #appIframeContainer {
+        position: fixed;
+        top: 0px;
+        left: 0px;
+        width: 100vw;
+        height: 100vh;
+        background-color: black;
+      }
+
+      #appIframe {
+        position: relative;
+      }
+
+      #appIframeContainer:not(:fullscreen) {
+        visibility: hidden;
+      }
+
+      body {
+        background-image: url("assets/background-light-sand.jpg");
+        position: absolute;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #appBtn {
+        padding: 10px;
+        border: 4px grey solid;
+        border-radius: 20px;
+        background-image: url("assets/background-turquoise.jpg");
+      }
+    </style>
+  </head>
+  <body>
+    <img src="assets/kite_1.png" width="150px" id="appBtn" />
+
+    <div id="appIframeContainer">
+      <iframe
+        src="app_1/1_3/index.html?lang=en"
+        frameborder="0"
+        id="appIframe"
+      ></iframe>
+    </div>
+
+    <script>
+      function getParameterByName(name, url = window.location.href) {
+        name = name.replace(/[\[\]]/g, "\\$&");
+        var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+          results = regex.exec(url);
+        if (!results) return null;
+        if (!results[2]) return "";
+        return decodeURIComponent(results[2].replace(/\+/g, " "));
+      }
+
+      function rescaleIframe() {
+        const container = document.getElementById("appIframeContainer");
+        const iframe = document.getElementById("appIframe");
+
+        let appWidth = 1920; // native size of the CindyJS app
+        let appHeight = 1080;
+        let containerWidth = container.offsetWidth;
+        let containerHeight = container.offsetHeight;
+
+        const appAR = appWidth / appHeight; // app aspect ratio
+        const containerAR = containerWidth / containerHeight; // container aspect ratio
+
+        let ratio, desiredHeight, desiredWidth;
+        if (appAR > containerAR) {
+          // horizontal bands
+          ratio = containerWidth / appWidth;
+          desiredWidth = containerWidth;
+          desiredHeight = ratio * appHeight;
+        } else {
+          // vertical bands
+          ratio = containerHeight / appHeight;
+          desiredWidth = ratio * appWidth;
+          desiredHeight = containerHeight;
+        }
+
+        let topOffset = 0.5 * (containerHeight - desiredHeight);
+        let leftOffset = 0.5 * (containerWidth - desiredWidth);
+
+        let iframeHeight = desiredHeight / ratio;
+        let iframeWidth = desiredWidth / ratio;
+
+        iframe.style.cssText = `width: ${iframeWidth}px; height: ${iframeHeight}px; 
+          top: ${topOffset}px; left: ${leftOffset}px;
+          transform: scale(${ratio}); transform-origin: left top;`;
+      }
+
+      let lang = getParameterByName("lang");
+      if (!lang) {
+        lang = "en"; // fallback option
+      }
+      const iframe = document.getElementById("appIframe");
+      iframe.src = `app_1/1_3/index.html?lang=${lang}`;
+
+      rescaleIframe();
+
+      document.getElementById("appBtn").addEventListener("click", () => {
+        console.log("clicked");
+        iframeContainer = document.getElementById("appIframeContainer");
+
+        const ww = window.screen.width;
+        const hh = window.screen.height;
+        iframeContainer.style.width = Math.max(ww, hh) + "px";
+        iframeContainer.style.height = Math.min(ww, hh) + "px";
+        rescaleIframe();
+
+        iframeContainer
+          .requestFullscreen()
+          .then(() => screen.orientation.lock("landscape"))
+          .then(
+            (success) => {
+              console.log(success);
+            },
+            (failure) => {
+              console.log(failure);
+            }
+          )
+          .catch((err) => {
+            alert(
+              `An error occurred while trying to switch into fullscreen mode: ${err.message} (${err.name})`
+            );
+          });
+      });
+    </script>
+  </body>
+</html>
