@@ -14,6 +14,8 @@ When opening the page, say .../index.html, append a string ?option1=value1&optio
 |----------------|-------------------------------|-----------------------------| ---------|
 |leaves               |Integer number from 1 to 10 |Change the number of vertices| 6        |
 |maxEdges             |Integer number           |Change the maximum number of edges in the graph| 999        |
+|SpeedEdges           |Float number from 0 to 1           |Change the speed of growth of the edges of the graph, from min to max| 1        |
+|SpeedFlowers         |Float number from 0 to 1         |Change the speed of growth of the leaves of the graph, from min to max| 0        |
 
 # Rabbit maze
 ## Url inline options

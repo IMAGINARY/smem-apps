@@ -208,8 +208,10 @@
 
         L = 80;
 
-        NumeroPunti = gup("v", document.location.search) || 6;
-        NumeroMaxEdges = gup("e", document.location.search) || 999;
+        NumeroPunti = gup("leaves", document.location.search) || 6;
+        NumeroMaxEdges = gup("maxEdges", document.location.search) || 999;
+        SpeedEdges = gup("SpeedEdges", document.location.search) || 1;
+        SpeedFlowers = gup("SpeedFlowers", document.location.search) || 0;
         PresoPt = -1;
 
         AAAAA = GeneratePlanarGraph(NumeroPunti, 50);
@@ -339,7 +341,7 @@
             ) == false
           ) {
             if (EdgeData[NM[i]].TTT < 1) {
-              EdgeData[NM[i]].TTT += 0.003;
+              EdgeData[NM[i]].TTT += 0.003+SpeedEdges*0.006;
               CanFlower = false;
             }
           } else {
@@ -348,7 +350,7 @@
 
           if (G.StartFlowering == true) {
             for (let k = 0; k < EdgeData[NM[i]].FlowerTTT.length; k++) {
-              EdgeData[NM[i]].FlowerTTT[k] += 0.03;
+              EdgeData[NM[i]].FlowerTTT[k] += 0.03+SpeedFlowers*0.03;
             }
           }
         }
