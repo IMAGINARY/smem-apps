@@ -28,3 +28,4 @@ When opening the page, say .../index.html, append a string ?option1=value1&optio
 |s             |Integer number           |An indication of how many edges has to be removed from the initial table to get the maze|(2rc-r-c)/2        |
 |b|Integer number           |Maximum number of distracting elements for the rabbits (carrots)| 3        |
 |o|Integer number           |Number of rocks to block the path| 8        |
+|FastSpeed|Float number from 0 to 1           |Change the fast speed of rabbits, from min to max| 1        |

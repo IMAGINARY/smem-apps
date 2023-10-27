@@ -418,6 +418,7 @@
           );
         MaxBushes = gup("b", document.location.search) || 3;
         NumRocks = gup("o", document.location.search) || 8;
+		FastSpeed = gup("o", document.location.search) || 8;
 
         InitializeGraph(
           GenerateGraph(NumeroColonne, NumeroRighe, NumeroSuddivisioni)
@@ -629,7 +630,7 @@
       Lento = 1;
       function FF() {
         if (Lento == 1) {
-          CambiaSpeed(1 / 15);
+          CambiaSpeed(1 / 15+FastSpeed*1/30);
           Lento = 0;
         } else {
           CambiaSpeed(1 / 50);
