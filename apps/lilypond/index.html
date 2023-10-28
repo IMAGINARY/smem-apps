@@ -6,6 +6,7 @@
     <link href="files/Prova_CSS.css" rel="stylesheet" />
     <script src="files/Prova_CommonFunctions.js"></script>
     <script src="files/Classe_GRAPH.js"></script>
+    <script src="files/fireworks.js"></script>
 
     <script>
       async function GetImage(UrlImage) {
@@ -95,6 +96,7 @@
           ValenzaVertici[i + 1]++;
         }
 
+		console.log("VV0",ValenzaVertici);
         NumeroValenza4 = Math.floor(Math.random() * 4);
         console.log(NumeroValenza4);
         NumeroValenza3Max = 5 - NumeroValenza4;
@@ -107,17 +109,22 @@
             e < 3 ? i : ""
           ).filter(String);
           Candidato = SelectCandidato(VerticiValenzaMinore, Edges);
+		  if (Candidato.length==0) return [Vertici, Edges];
           Edges.push(Candidato);
           ValenzaVertici[Candidato[0]]++;
           ValenzaVertici[Candidato[1]]++;
+		  console.log("VV1",ValenzaVertici);
         }
 
         while (CountValenza(ValenzaVertici, 4) < NumeroValenza4) {
           if (Edges.length > MaxEdges) return [Vertici, Edges];
+		  console.log("VV2",ValenzaVertici);
           VerticiValenzaMinore = ValenzaVertici.map((e, i) =>
             e == 3 ? i : ""
           ).filter(String);
+		  console.log(VerticiValenzaMinore);
           Candidato = SelectCandidato(VerticiValenzaMinore, Edges);
+		  if (Candidato.length==0) return [Vertici, Edges];
           Edges.push(Candidato);
           ValenzaVertici[Candidato[0]]++;
           ValenzaVertici[Candidato[1]]++;
@@ -177,6 +184,9 @@
 
         document.getElementById("Canvas").width = w;
         document.getElementById("Canvas").height = h;
+		
+		document.getElementById("CanvasFireworks").width = w;
+        document.getElementById("CanvasFireworks").height = h;
 
         window.ctx = document.getElementById("Canvas").getContext("2d");
         window.fps = 25; //Frame al secondo delle animazioni
@@ -195,8 +205,28 @@
         mousey = 0;
         mousexo = 0;
         mouseyo = 0;
+		
+		InitFireworks();
+		
+		NumeroPunti = gup("leaves", document.location.search) || 6;
+        NumeroMaxEdges = gup("maxEdges", document.location.search) || 999;
+        SpeedEdges = gup("SpeedEdges", document.location.search) || 1;
+        SpeedFlowers = gup("SpeedFlowers", document.location.search) || 0;
 
-        // Parametri vari
+        NewGame();
+		
+      }
+	  
+	  function NextLevel() {
+		if (NumeroPunti<9) NumeroPunti++;
+		NewGame();
+	  
+	  }
+	  
+	  function NewGame() {
+	  
+	  AStop();
+	  // Parametri vari
         SogliaClick = 60;
         Soglia0 = 0.001;
 
@@ -208,20 +238,18 @@
 
         L = 80;
 
-        NumeroPunti = gup("leaves", document.location.search) || 6;
-        NumeroMaxEdges = gup("maxEdges", document.location.search) || 999;
-        SpeedEdges = gup("SpeedEdges", document.location.search) || 1;
-        SpeedFlowers = gup("SpeedFlowers", document.location.search) || 0;
+        
         PresoPt = -1;
 
         AAAAA = GeneratePlanarGraph(NumeroPunti, 50);
+		
         Pts = AAAAA[0];
 
         Berries = [8, 27, 32];
         Fattorie = [29];
 
         Edg = AAAAA[1];
-
+		console.log(Edg);
         Transp = 0.9;
 
         NPecorelle = 50;
@@ -244,6 +272,11 @@
         EdgeData = {};
 
         for (var i = 0; i < Edg.length; i++) {
+			
+			//console.log("Edg.length",Edg.length);
+			//console.log("i",i);
+			//console.log("Edg",Edg);
+			//console.log("Edg[i]",Edg[i]);
           G.adjMat[Edg[i][0]][Edg[i][1]] = 1;
           G.adjMat[Edg[i][1]][Edg[i][0]] = 1;
           if (Edg[i][0] < Edg[i][1]) {
@@ -299,12 +332,13 @@
 
           EdgeData[NameData] = Dati;
         }
+		
 
         G.Simmetrizza();
         G.SetEuclideanDistances();
         G.CheckIntersectionTest();
         PartenzaAnimazione();
-      }
+		}
 
       function GetRandomButSpaced(N, D) {
         let Risposta = new Array(N);
@@ -349,6 +383,9 @@
           }
 
           if (G.StartFlowering == true) {
+			  if (typeof myTimeout == 'undefined') {
+				 myTimeout = setTimeout(ShowFinish, 2000);
+				}
             for (let k = 0; k < EdgeData[NM[i]].FlowerTTT.length; k++) {
               EdgeData[NM[i]].FlowerTTT[k] += 0.03+SpeedFlowers*0.03;
             }
@@ -446,6 +483,15 @@
         G.PlotLeaves();
         G.PlotFlowers();
       }
+	  
+	  
+	  function ShowFinish() {
+		  document.getElementById("DivCanvasFireworks").style.visibility="visible";
+		  document.getElementById("DivButtons").style.visibility="visible";
+		  Yeah();
+	  }
+	  
+
     </script>
   </head>
 
@@ -453,6 +499,13 @@
     <div id="DivCanvas">
       <canvas id="Canvas"></canvas>
     </div>
+	
+	<div id="DivCanvasFireworks">
+      <canvas id="CanvasFireworks"></canvas>
+    </div>
+	<div id="DivButtons">
+	 <button onclick="NewGame()">Reload</button> - <button onclick="NextLevel()">Next</button>
+	</div>
     <script src="../common-js/reloadButton.js"></script>
   </body>
 </html>
