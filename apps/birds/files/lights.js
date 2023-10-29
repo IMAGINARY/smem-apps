@@ -6,10 +6,35 @@ function gup(name, url) {
             var results = regex.exec(url);
             return results == null ? null : results[1];
         }
+LenghtArray=Number(gup('birds', document.location.search)) || 6;
+
+
+async function init() {
+	InitFireworks();
+	document.getElementById("ButtonReload").setAttribute('onclick','setup()');
+	setup();
+}
+
+	  function NextLevel() {
+		if (LenghtArray<6) LenghtArray++;
+		setup();
+	  
+	  }
 
 async function setup()
 {
-	LenghtArray=Number(gup('birds', document.location.search)) || 6;
+	
+	if (typeof myTimeout != 'undefined') {
+			clearTimeout(myTimeout)
+			myTimeout=undefined
+		}
+	if (typeof reqExp != 'undefined') {	
+		cancelAnimationFrame(reqExp);
+	}
+	
+	document.getElementById("DivCanvasFireworks").style.visibility="hidden";
+	document.getElementById("DivButtons").style.visibility="hidden";
+	console.log(LenghtArray);
 	MatrixGame=GetNewMatrix(LenghtArray);
 	
 	//This is a very dangerous way to get an invertible matrix
@@ -23,6 +48,8 @@ async function setup()
 	
 	VettPicChosen=getRandomIntegers(LenghtArray, 9);
 	
+	document.getElementById("light-wrapper").innerHTML="";
+	document.getElementById("button-wrapper").innerHTML="";
 	for (i=0;i<LenghtArray;i++) {
 		document.getElementById("light-wrapper").appendChild(await CreateImage(i,"lamp"+VettPicChosen[i],"L","imglamps"));
 		document.getElementById("button-wrapper").appendChild(await CreateImage(i,"","B","imgbuttons",ChangeStatus));
@@ -41,6 +68,8 @@ async function setup()
 
   
 }
+
+
 
 
 function getRandomIntegers(k, n) {
@@ -87,7 +116,7 @@ async function CreateImage(N,Src, PreId, Class, Funct) {
 
 
 
-window.addEventListener( 'load', setup );
+window.addEventListener( 'load', init );
 
 
 const determinant = m => 
@@ -114,11 +143,20 @@ function Randomize(Matrix) {
 		}
 	}
 }
+Object.defineProperties(Array.prototype, {
+    count: {
+        value: function(value) {
+            return this.filter(x => x==value).length;
+        }
+    }
+});
 
 function ChangeStatus() {
 	n=Number(this.id.slice(1));
+	let LightsOn=0;
 	for (var i=0;i<LenghtArray;i++) {
 		if (MatrixGame[i][n]==1) {
+			
 			LightVector[i]=1-LightVector[i];
 			ThisName=document.getElementById("L"+i).name;
 			document.getElementById("L"+i).src=((LightVector[i]==0) ? "files/"+ThisName+"off.png" : "files/"+ThisName+"on.png");
@@ -126,10 +164,17 @@ function ChangeStatus() {
 				audio[i].currentTime = 0
 				audio[i].play();
 				
+				
 			} else {
 				audio[i].pause();
 				audio[i].currentTime = 0
 			}
+		}
+	}
+	if (LightVector.count(1) == LenghtArray) {
+		
+		if (typeof myTimeout == 'undefined') {
+			 myTimeout = setTimeout(ShowFinish, 2000);
 		}
 	}
 	ButtonVector[n]=1-ButtonVector[n];
@@ -140,3 +185,10 @@ function ChangeStatus() {
 
 
 
+
+function ShowFinish() {
+	  console.log("finish");
+		  document.getElementById("DivCanvasFireworks").style.visibility="visible";
+		  document.getElementById("DivButtons").style.visibility="visible";
+		  Yeah();
+	  }

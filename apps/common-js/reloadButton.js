@@ -1,5 +1,5 @@
 const button = document.createElement("div");
-
+button.setAttribute("id", "ButtonReload");
 reload = () => location.reload();
 
 button.onclick = reload;
