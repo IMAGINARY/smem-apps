@@ -3,6 +3,14 @@ function InitFireworks() {
 	max_sparks = 100;
 	 canvasFireworks = document.getElementById('CanvasFireworks');
 	 contextFireworks = canvasFireworks.getContext('2d');
+	 
+	    wC = document.getElementById('DivCanvasFireworks').clientWidth;
+        hC = document.getElementById('DivCanvasFireworks').clientHeight;
+
+		
+		document.getElementById("CanvasFireworks").width = wC;
+        document.getElementById("CanvasFireworks").height = hC;
+	 
 	 fireworks = [];
 	
 }
@@ -57,7 +65,7 @@ for (let i = 0; i < max_fireworks; i++) {
   resetFirework(firework);
 }
 //
-window.requestAnimationFrame(explode);
+reqExp=window.requestAnimationFrame(explode);
 
 }
  
@@ -102,5 +110,5 @@ function explode() {
       if (Math.random() < .001 || firework.y < 200) firework.phase = 'explode';
     }
   });
-  window.requestAnimationFrame(explode);
+  reqExp=window.requestAnimationFrame(explode);
 }
