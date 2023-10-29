@@ -11,6 +11,7 @@ LenghtArray=Number(gup('birds', document.location.search)) || 6;
 
 async function init() {
 	InitFireworks();
+	document.getElementById("ButtonReload").setAttribute('onclick','setup()');
 	setup();
 }
 

@@ -422,7 +422,7 @@
         NumRocks = gup("o", document.location.search) || 8;
 		FastSpeed = gup("f", document.location.search) || 8;
 
-        
+        document.getElementById("ButtonReload").setAttribute('onclick','Setup()');
 		
 		InitFireworks();
 		Setup();
