@@ -6,10 +6,12 @@ function gup(name, url) {
             var results = regex.exec(url);
             return results == null ? null : results[1];
         }
+LenghtArray=Number(gup('birds', document.location.search)) || 6;
+
 
 async function setup()
 {
-	LenghtArray=Number(gup('birds', document.location.search)) || 6;
+	console.log(LenghtArray);
 	MatrixGame=GetNewMatrix(LenghtArray);
 	
 	//This is a very dangerous way to get an invertible matrix
@@ -23,6 +25,8 @@ async function setup()
 	
 	VettPicChosen=getRandomIntegers(LenghtArray, 9);
 	
+	document.getElementById("light-wrapper").innerHTML="";
+	document.getElementById("button-wrapper").innerHTML="";
 	for (i=0;i<LenghtArray;i++) {
 		document.getElementById("light-wrapper").appendChild(await CreateImage(i,"lamp"+VettPicChosen[i],"L","imglamps"));
 		document.getElementById("button-wrapper").appendChild(await CreateImage(i,"","B","imgbuttons",ChangeStatus));
@@ -41,6 +45,8 @@ async function setup()
 
   
 }
+
+
 
 
 function getRandomIntegers(k, n) {
