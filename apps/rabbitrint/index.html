@@ -7,6 +7,8 @@
     <script src="files/Prova_CommonFunctions.js"></script>
 
     <script src="files/Classe_GRAPH.js"></script>
+	
+    <script src="../common-js/fireworks.js"></script>
 
     <script>
       //Boulder: https://pixy.org/209108/
@@ -412,18 +414,65 @@
         NumeroRighe = gup("r", document.location.search) || 6;
         NumeroColonne = gup("c", document.location.search) || 8;
         NumeroSuddivisioni =
-          gup("c", document.location.search) ||
+          gup("s", document.location.search) ||
           Math.floor(
             (2 * NumeroRighe * NumeroColonne - NumeroRighe - NumeroColonne) / 2
           );
         MaxBushes = gup("b", document.location.search) || 3;
         NumRocks = gup("o", document.location.search) || 8;
-		FastSpeed = gup("o", document.location.search) || 8;
+		FastSpeed = gup("f", document.location.search) || 8;
 
-        InitializeGraph(
+        
+		
+		InitFireworks();
+		Setup();
+      }
+	  
+	  function Setup() {
+		document.getElementById("DivCanvasFireworks").style.visibility="hidden";
+		  document.getElementById("DivButtons").style.visibility="hidden";
+		  AStop();
+		  
+		  
+		  
+		  
+		  if (typeof myTimeout != 'undefined') {
+			clearTimeout(myTimeout)
+			myTimeout=undefined
+		}
+	if (typeof reqExp != 'undefined') {	
+		cancelAnimationFrame(reqExp);
+	}
+	
+		InitializeGraph(
           GenerateGraph(NumeroColonne, NumeroRighe, NumeroSuddivisioni)
         );
-      }
+	  
+	  Lento=0;
+		  FF();
+	  }
+	  
+	  function NextLevel() {
+	  
+	  switch (Math.floor(Math.random()*3)) {
+		case 0:
+			if (MaxBushes<5) MaxBushes++
+			break
+		case 1:
+			if (NumeroRighe<10) NumeroRighe++
+			break
+		case 2:
+			if (NumeroColonne<10) NumeroColonne++
+			break
+	  }
+	  
+	  NumeroSuddivisioni = Math.floor(
+            (2 * NumeroRighe * NumeroColonne - NumeroRighe - NumeroColonne) / 2 + Math.floor(Math.random()*3)-1
+          );
+		Setup();
+	  
+	  
+	  }
 
       function gup(name, url) {
         if (!url) url = location.href;
@@ -431,7 +480,7 @@
         var regexS = "[\\?&]" + name + "=([^&#]*)";
         var regex = new RegExp(regexS);
         var results = regex.exec(url);
-        return results == null ? null : results[1];
+        return results == null ? null : Number(results[1]);
       }
 
       function AggiornaVariabili() {
@@ -491,6 +540,14 @@
                 //console.log("FATTORIA - Orig: " + Pecorelle[i].orig + " Dest: " + Pecorelle[i].dest + " Stato: " + Pecorelle[i].stato + " t: " + Pecorelle[i].t);
                 Pecorelle[i].stato = 0;
                 PecoreSalve++;
+				
+				if (PecoreSalve==Pecorelle.length) {
+					if (typeof myTimeout == 'undefined') {
+					 myTimeout = setTimeout(ShowFinish, 2000);
+					}
+				
+				}
+				
                 AggiornaTesti();
                 //console.log("Pecorella "+i+" arrivata alla fattoria!");
               }
@@ -1021,12 +1078,31 @@ function ev_mousewheel (ev) {
           // a
         }
       }
+	  
+	  
+	  	  function ShowFinish() {
+	  console.log("finish");
+		  document.getElementById("DivCanvasFireworks").style.visibility="visible";
+		  document.getElementById("DivButtons").style.visibility="visible";
+		  Yeah();
+	  }
     </script>
   </head>
   <body onload="init()" onkeydown="KeyPressed(event);">
     <div id="DivCanvas" style="font: bold 20px Arial">
       <canvas id="Canvas"></canvas>
     </div>
+
+<div id="DivCanvasFireworks">
+      <canvas id="CanvasFireworks"></canvas>
+    </div>
+	<div id="DivButtons">
+	 <svg fill="#000000" width="108" height="108" viewBox="0 0 512 512" onclick="Setup()">
+<path d="M256,48C141.31,48,48,141.31,48,256s93.31,208,208,208,208-93.31,208-208S370.69,48,256,48ZM376,238.77H287l36.88-36.88-5.6-6.51a87.38,87.38,0,1,0-62.94,148,87.55,87.55,0,0,0,82.42-58.25L343.13,270l30.17,10.67L368,295.8A119.4,119.4,0,1,1,255.38,136.62a118.34,118.34,0,0,1,86.36,36.95l.56.62,4.31,5L376,149.81Z"/>
+</svg> - <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" width="100" height="100" onclick="NextLevel()">
+  <circle cx="50" cy="50" r="45" fill="black" />
+  <polygon points="60,50 40,40 40,60" fill="white" />
+</svg></div> 
 
     <div id="MenuSinistra" class="ClasseMenuOptions">
       START/STOP: <button onclick="StartStop();">StartStop</button>
