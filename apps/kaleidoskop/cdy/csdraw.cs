@@ -32,7 +32,9 @@ if(L.y<=K.y,
 if(L.y>=H.y,
     L.xy=H.xy);
 
-alp=|C,M|/|C,F|/2;
+// alp=|C,M|/|C,F|/2;
+alp = 0.3;
+
 
 // A: center of the kaleidoscope
 // A, B: endpoints of the original side of the fundamental triangle

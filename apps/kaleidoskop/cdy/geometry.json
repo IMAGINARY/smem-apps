@@ -96,8 +96,8 @@
     "args": ["a"],
     "pos": [4, 0, 0.13995342517954137],
     "narrow": 100,
-    "size": 0,
+    "size": 7,
     "color": [1, 1, 1],
-    "pinned": true
+    "pinned": false
   }
 ]
