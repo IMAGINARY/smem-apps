@@ -13,13 +13,11 @@ title:
 logo:
   en: assets/img/smemlogo-1024x1024.png
 apps:
-  - apps/barycenter1
-  - apps/fly
-  - apps/kaleidoskop
-  - apps/barycenter2
   - apps/birds
   - apps/lilypond
   - apps/rabbitrint
+  - apps/kaleidoskop
+  - apps/barycenter2
 
 # infoApp: apps/cindyjs/info
 langMenuShow: true
