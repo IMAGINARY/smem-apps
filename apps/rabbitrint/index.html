@@ -716,7 +716,7 @@
               break;
             }
           }
-          if (VertSel > -1) {
+          if (VertSel > -1 && G.Vertices[VertSel].type==0) {
             // Sto per mollare un blocco in un vertice del labirinto
 
             Blocchi[PresoBl].pos.x = G.Vertices[VertSel].pos.x;
