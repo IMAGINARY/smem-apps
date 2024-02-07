@@ -9,6 +9,8 @@ title:
   de: SMEM
   el: SMEM
   sr: SMEM
+  sr-Latin: SMEM
+  hr: SMEM
   fr: SMEM
 logo:
   en: assets/img/smemlogo-1024x1024.png
@@ -31,4 +33,5 @@ langMenuItems:
   - fr
   - sr
   - sr-Latin
+  - hr
   - el
